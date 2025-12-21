@@ -1,1 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Booha Blocks – Practice Deck</title>
 
+  <!-- no pinch zoom -->
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+  :root{
+    --pink:#ff7eb9;
+    --aqua:#7dd3fc;
+    --gold:#ffd166;
+    --outline:rgba(255,255,255,0.35);
+  }
+
+  /* RESET */
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;width:100%;overflow:hidden;}
+
+  body{
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding-top:4vh;
+    padding-bottom:4vh;
+    background:
+      radial-gradient(circle at top, #1f2937 0%, #020617 55%, #000000 100%);
+    font-family:'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    color:#f9fafb;
+    overflow:hidden;
+  }
+
+  /* PHONE SHELL */
+  .shell{
+    position:relative;
+    padding:18px 22px 24px;
+    border-radius:24px;
+    background:radial-gradient(circle at top,rgba(148,163,255,0.25),rgba(15,23,42,0.98));
+    border:1px solid rgba(148,163,255,0.5);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+
+    width:min(480px, 100vw - 24px);
+    max-height:96vh;
+  }
+
+  /* iPhone Safari bottom bar fix */
+  @supports (-webkit-touch-callout:none) {
+    body{ padding-bottom:calc(4vh + env(safe-area-inset-bottom, 0px)); }
+    .shell{ padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px)); }
+  }
+
+  /* shell halo */
+  .shell::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    border-radius:26px;
+    background:
+      radial-gradient(circle at 0% 0%,rgba(236,72,153,0.27),transparent 60%),
+      radial-gradient(circle at 100% 100%,rgba(56,189,248,0.24),transparent 60%);
+    z-index:-1;
+    filter:blur(10px);
+    opacity:0.9;
+    animation:orbGlow 6s ease-in-out infinite alternate;
+  }
+  @keyframes orbGlow{
+    0%{transform:translate3d(-4px,-4px,0) scale(1);}
+    100%{transform:translate3d(4px,4px,0) scale(1.02);}
+  }
+
+  /* scale hub down on short screens */
+  @media (max-height:780px){
+    .shell{ transform:scale(0.9); transform-origin: top center; }
+  }
+  @media (max-height:700px){
+    .shell{ transform:scale(0.82); transform-origin: top center; }
+  }
+
+  /* TITLE */
+  h1{
+    font-family:'Cinzel',serif;
+    font-weight:900;
+    letter-spacing:0.12em;
+    font-size:1.05rem;
+    text-transform:uppercase;
+    text-align:center;
+    color:#e5e7eb;
+    text-shadow:
+      0 0 8px rgba(248,250,252,0.9),
+      0 0 16px rgba(251,113,133,0.8);
+  }
+  h1 span{
+    display:block;
+    font-size:0.8rem;
+    letter-spacing:0.28em;
+    color:#a5b4fc;
+    text-shadow:none;
+    margin-top:2px;
+  }
+
+  /* TOP BUTTONS */
+  #helpBtn,#trophyBtn,#pauseBtn{
+    position:absolute;
+    top:8px;
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:1px solid var(--gold);
+    background:linear-gradient(135deg,var(--pink),var(--aqua));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    cursor:pointer;
+    box-shadow:0 0 12px rgba(255,255,255,0.7);
+    z-index:15;
+  }
+  #helpBtn{left:8px;}
+  #trophyBtn{right:52px;}
+  #pauseBtn{right:8px;}
+
+  /* HUD */
+  .hud-row{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    font-size:0.8rem;
+    color:#e5e7eb;
+  }
+  .hud-row .label{opacity:0.8;}
+  .hud-row .value{
+    color:var(--gold);
+    text-shadow:0 0 6px #ffd166;
+  }
+  .hud-row .next{
+    color:var(--pink);
+    text-shadow:0 0 6px #ff7eb9;
+  }
+
+  /* GAME CANVAS */
+  #game{
+    margin-top:8px;
+    border-radius:18px;
+    border:1px solid var(--outline);
+    background:radial-gradient(circle at top,#020617 0%,#000 50%,#020617 100%);
+    box-shadow:
+      0 0 22px rgba(59,130,246,0.55),
+      0 0 50px rgba(15,23,42,0.9);
+    image-rendering:pixelated;
+    touch-action:none;
+    width:100%;
+    height:auto;
+    aspect-ratio:1/2;
+    display:block;
+  }
+
+  /* SPARKLES */
+  .sparkle-overlay{
+    pointer-events:none;
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    border-radius:24px;
+    mix-blend-mode:screen;
+    opacity:0.45;
+  }
+  .spark{
+    position:absolute;
+    width:3px;height:3px;border-radius:50%;
+    background:radial-gradient(circle,#e5e7eb 0%,rgba(244,244,245,0) 70%);
+    box-shadow:0 0 8px rgba(255,255,255,0.9);
+    animation:floatUp 8s linear infinite;
+  }
+  .spark:nth-child(2){animation-duration:10s;}
+  .spark:nth-child(3){animation-duration:12s;}
+  .spark:nth-child(4){animation-duration:9s;}
+  .spark:nth-child(5){animation-duration:11s;}
+  .spark:nth-child(6){animation-duration:13s;}
+  @keyframes floatUp{
+    0%{transform:translate3d(0,120%,0) scale(0.6); opacity:0;}
+    18%{opacity:1;}
+    80%{opacity:1;}
+    100%{transform:translate3d(0,-40%,0) scale(1.05); opacity:0;}
+  }
+
+  /* MOBILE CONTROLS */
+  #mobileControls,#mobileDownRow{
+    display:none;
+    width:100%;
+    justify-content:center;
+    gap:12px;
+    margin-top:10px;
+  }
+  .mob-btn{
+    width:52px;height:52px;border-radius:50%;
+    border:1px solid var(--gold);
+    background:linear-gradient(135deg,var(--pink),var(--aqua));
+    box-shadow:0 0 12px rgba(255,255,255,0.7);
+    font-size:22px;color:#111827;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  #rotateBtn{
+    background:radial-gradient(circle at 30% 20%, #fdf2ff, #e879f9 40%, #a855f7 80%);
+    box-shadow:0 0 18px rgba(232,121,249,0.9);
+  }
+  @media(max-width:1366px){
+    #mobileControls,#mobileDownRow{display:flex;}
+  }
+
+  /* PAUSE OVERLAY */
+  #pauseOverlay{
+    position:absolute;inset:0;border-radius:24px;
+    background:rgba(0,0,0,0.6);
+    display:none;align-items:center;justify-content:center;
+    z-index:25;font-size:0.95rem;text-shadow:0 0 6px #fff;
+  }
+
+  /* HELP OVERLAY */
+  #helpOverlay{
+    position:absolute;inset:0;border-radius:24px;
+    background:rgba(0,0,15,0.8);
+    backdrop-filter:blur(6px);
+    display:none;align-items:center;justify-content:center;
+    z-index:30;
+  }
+  .help-card{
+    width:88%;max-width:380px;
+    padding:18px 20px 16px;border-radius:18px;
+    background:radial-gradient(circle,#111827,#020617 60%);
+    border:1px solid rgba(255,255,255,0.25);
+    position:relative;color:#e5e7eb;font-size:0.8rem;
+  }
+  .help-title{
+    font-family:'Cinzel';
+    text-align:center;font-size:1.1rem;margin-bottom:8px;
+  }
+  #helpClose{
+    position:absolute;top:8px;right:8px;width:26px;height:26px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--pink),var(--aqua));
+    border:1px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;cursor:pointer;
+    box-shadow:0 0 8px rgba(255,255,255,0.7);
+  }
+
+  /* LEADERBOARD */
+  #leaderboardOverlay{
+    position:absolute;inset:0;border-radius:24px;
+    background:rgba(0,0,15,0.9);
+    backdrop-filter:blur(6px);
+    display:none;align-items:center;justify-content:center;
+    z-index:32;
+  }
+  .leader-card{
+    width:88%;max-width:360px;
+    padding:18px 20px 16px;border-radius:18px;
+    background:radial-gradient(circle,#020617,#020617 60%);
+    border:1px solid rgba(255,255,255,0.25);
+    color:#e5e7eb;position:relative;font-size:0.8rem;
+  }
+  .leader-title{
+    font-family:'Cinzel';
+    text-align:center;font-size:1.05rem;margin-bottom:8px;
+  }
+  #leaderClose{
+    position:absolute;top:8px;right:8px;width:26px;height:26px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--pink),var(--aqua));
+    border:1px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;cursor:pointer;
+    box-shadow:0 0 8px rgba(255,255,255,0.7);
+  }
+  #leaderboardList{margin-top:4px;line-height:1.6;}
+
+  /* QUESTION OVERLAY */
+  #questionOverlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,20,0.82);
+    backdrop-filter:blur(8px);
+    display:none;align-items:center;justify-content:center;
+    z-index:50;
+  }
+  .q-card{
+    width:min(92vw,440px);
+    border-radius:20px;
+    padding:18px 18px 16px;
+    background:radial-gradient(circle at top,#111827,#020617 65%,#020617 100%);
+    border:1px solid rgba(248,250,252,0.25);
+    box-shadow:
+      0 0 30px rgba(251,113,133,0.8),
+      0 0 80px rgba(56,189,248,0.6);
+    color:#f9fafb;
+  }
+  .q-title{
+    font-family:'Cinzel',serif;
+    font-weight:900;
+    letter-spacing:.08em;
+    text-align:center;
+    margin-bottom:6px;
+  }
+  .q-sub{
+    text-align:center;
+    font-size:.82rem;
+    opacity:.85;
+    margin-bottom:12px;
+  }
+  #questionText{
+    font-size:1rem;
+    line-height:1.45;
+    margin:8px 0 12px;
+  }
+  .choices{
+    display:grid;
+    gap:10px;
+    margin-top:10px;
+  }
+  .choiceBtn{
+    appearance:none;
+    border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,255,255,.08);
+    color:#f9fafb;
+    padding:12px 12px;
+    border-radius:14px;
+    font-weight:800;
+    cursor:pointer;
+    text-align:left;
+    box-shadow:0 10px 24px rgba(0,0,0,.25);
+    transition:transform .08s ease, background .12s ease, border-color .12s ease;
+  }
+  .choiceBtn:active{transform:scale(.98);}
+  .choiceBtn.correct{
+    background:rgba(34,197,94,.22);
+    border-color:rgba(34,197,94,.65);
+  }
+  .choiceBtn.wrong{
+    background:rgba(239,68,68,.18);
+    border-color:rgba(239,68,68,.55);
+  }
+  .q-note{
+    font-size:.8rem;
+    opacity:.9;
+    margin-top:10px;
+    text-align:center;
+  }
+
+  /* START OVERLAY */
+  #startOverlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,10,0.85);
+    display:flex;align-items:center;justify-content:center;
+    z-index:60;text-align:center;
+  }
+  #startOverlayInner{
+    padding:20px 18px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.3);
+    background:radial-gradient(circle,#111827,#020617 60%);
+    box-shadow:0 0 30px rgba(59,130,246,0.8);
+    font-size:0.95rem;
+  }
+  #startOverlayInner .big{
+    display:block;
+    font-size:1.6rem;
+    margin-bottom:6px;
+  }
+  </style>
+</head>
+<body>
+
+<!-- Tap-to-start -->
+<div id="startOverlay">
+  <div id="startOverlayInner">
+    <span class="big">画面をタップしてスタート</span>
+    ブロックを動かしてラインを消そう！<br>
+    １０ラインごとにブーハクイズが出てくるよ。
+  </div>
+</div>
+
+<div class="shell">
+
+  <h1>
+    BOOHA BLOCKS
+    <span>１月のれんしゅう</span>
+  </h1>
+
+  <div id="helpBtn">？</div>
+  <div id="trophyBtn">🏆</div>
+  <div id="pauseBtn">⏸</div>
+
+  <div class="hud-row">
+    <div>
+      <span class="label">ライン：</span>
+      <span class="value" id="linesCount">0</span>
+    </div>
+    <div>
+      <span class="label">次のクイズ：</span>
+      <span class="next" id="nextAt">10</span>
+      <span class="label">ライン</span>
+    </div>
+  </div>
+
+  <div class="hud-row">
+    <div>
+      <span class="label">スコア：</span>
+      <span class="value" id="scoreValue">0</span>
+    </div>
+    <div></div>
+  </div>
+
+  <canvas id="game" width="320" height="640"></canvas>
+
+  <div class="sparkle-overlay">
+    <div class="spark" style="left:10%;"></div>
+    <div class="spark" style="left:30%;"></div>
+    <div class="spark" style="left:50%;"></div>
+    <div class="spark" style="left:70%;"></div>
+    <div class="spark" style="left:85%;"></div>
+    <div class="spark" style="left:42%;"></div>
+  </div>
+
+  <div id="pauseOverlay"><div>タップしてゲームに戻る</div></div>
+
+  <div id="helpOverlay">
+    <div class="help-card">
+      <div id="helpClose">✕</div>
+      <div class="help-title">How to Play ／ 遊び方</div>
+      <div class="help-text">
+        <p>● 左 ← と 右 → ボタンでブロックを動かす。</p>
+        <p>● ピンクの回転ボタンでブロックを回す。</p>
+        <p>● 下 ボタンを「タップ」すると1マス下に落ちる。</p>
+        <p>● 下 ボタンを「長押し」すると、すばやく落ちる（ソフトドロップ）。</p>
+        <br>
+        <p>● Use ← and → to move the block.</p>
+        <p>● Use the pink button to rotate the block.</p>
+        <p>● Tap the ↓ button to drop 1 square.</p>
+        <p>● Hold the ↓ button to accelerate the fall (soft-drop).</p>
+        <br>
+        <p>10ラインごとにクイズが出るよ！</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="leaderboardOverlay">
+    <div class="leader-card">
+      <div id="leaderClose">✕</div>
+      <div class="leader-title">ローカル・ハイスコア</div>
+      <div id="leaderboardList">まだありません</div>
+    </div>
+  </div>
+
+  <div id="mobileControls">
+    <div class="mob-btn" id="moveLeftBtn">←</div>
+    <div class="mob-btn" id="rotateBtn">↻</div>
+    <div class="mob-btn" id="moveRightBtn">→</div>
+  </div>
+
+  <div id="mobileDownRow">
+    <div class="mob-btn" id="moveDownBtn">↓</div>
+  </div>
+
+</div>
+
+<!-- QUESTION OVERLAY -->
+<div id="questionOverlay">
+  <div class="q-card">
+    <div class="q-title">Checkpoint</div>
+    <div class="q-sub">Booha Question Gate</div>
+
+    <div id="questionText"></div>
+    <div class="choices" id="choiceWrap"></div>
+
+    <div class="q-note" id="qNote">※ 正解するまで進めません（1回目で正解なら +100）</div>
+  </div>
+</div>
+
+<script>
+/* ======================================================
+   Booha Blocks – Points + Speed + Question Gate
+   ====================================================== */
+
+/* ---- iOS pinch zoom guard ---- */
+document.addEventListener('gesturestart', e => e.preventDefault());
+
+/* ---- canvas ---- */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const grid = 32;
+
+/* ---- state ---- */
+let gameStarted = false;
+let gameOver = false;
+let isPaused = false;
+let isPausedForQuestion = false;
+
+let score = 0;
+let linesClearedTotal = 0;
+
+let gravityFrames = 40; // start slow
+let frameCounter = 0;
+
+/* ---- HUD ---- */
+const linesEl = document.getElementById("linesCount");
+const scoreEl = document.getElementById("scoreValue");
+const nextAtEl = document.getElementById("nextAt");
+
+function updateHud(){
+  linesEl.textContent = linesClearedTotal;
+  scoreEl.textContent = score;
+  nextAtEl.textContent = (currentQuestionIndex + 1) * 10;
+}
+
+/* ---- playfield ---- */
+const playfield = [];
+for(let r = -2; r < 20; r++){
+  playfield[r] = Array(10).fill(0);
+}
+
+/* ---- pieces ---- */
+const tetrominos = {
+  I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+  J:[[1,0,0],[1,1,1],[0,0,0]],
+  L:[[0,0,1],[1,1,1],[0,0,0]],
+  O:[[1,1],[1,1]],
+  S:[[0,1,1],[1,1,0],[0,0,0]],
+  Z:[[1,1,0],[0,1,1],[0,0,0]],
+  T:[[0,1,0],[1,1,1],[0,0,0]]
+};
+const colors = {
+  I:"#7dd3fc", O:"#facc15", T:"#e879f9",
+  S:"#4ade80", Z:"#fb7185", J:"#a855f7", L:"#f97316"
+};
+
+/* ---- bag random ---- */
+const bag = [];
+function refillBag(){
+  const pieces = Object.keys(tetrominos);
+  while(pieces.length){
+    const i = Math.floor(Math.random() * pieces.length);
+    bag.push(pieces.splice(i,1)[0]);
+  }
+}
+function nextPiece(){
+  if(!bag.length) refillBag();
+  const name = bag.pop();
+  const matrix = tetrominos[name];
+  return {
+    name,
+    matrix,
+    row: name === "I" ? -1 : -2,
+    col: 10/2 - Math.ceil(matrix[0].length/2)
+  };
+}
+let piece = nextPiece();
+
+/* ---- collision ---- */
+function valid(matrix,row,col){
+  for(let r=0;r<matrix.length;r++){
+    for(let c=0;c<matrix[r].length;c++){
+      if(matrix[r][c]){
+        if(
+          col+c < 0 ||
+          col+c >= 10 ||
+          row+r >= 20 ||
+          playfield[row+r]?.[col+c]
+        ) return false;
+      }
+    }
+  }
+  return true;
+}
+
+/* ---- rotate ---- */
+function rotate(m){
+  return m[0].map((_,i)=>m.map(r=>r[i]).reverse());
+}
+
+/* ---- scoring (lines double) ---- */
+function scoreLines(lines){
+  if(lines <= 0) return;
+  const points = 10 * (2 ** (lines - 1)); // 1=10,2=20,3=40,4=80
+  score += points;
+}
+
+/* ---- speed scaling (tetris-like) ---- */
+function updateGravity(){
+  // score-based speed: slow at start, faster as score grows
+  gravityFrames = Math.max(8, 40 - Math.floor(score / 200));
+}
+
+/* ---- lock ---- */
+function lockPiece(){
+  for(let r=0;r<piece.matrix.length;r++){
+    for(let c=0;c<piece.matrix[r].length;c++){
+      if(piece.matrix[r][c]){
+        if(piece.row+r < 0){
+          gameOver = true;
+          return;
+        }
+        playfield[piece.row+r][piece.col+c] = piece.name;
+      }
+    }
+  }
+
+  let cleared = 0;
+  for(let r=19;r>=0;){
+    if(playfield[r].every(Boolean)){
+      playfield.splice(r,1);
+      playfield.unshift(Array(10).fill(0));
+      cleared++;
+    }else{
+      r--;
+    }
+  }
+
+  if(cleared){
+    linesClearedTotal += cleared;
+    scoreLines(cleared);
+    updateGravity();
+    maybeTriggerQuestion();
+  }
+
+  piece = nextPiece();
+  updateHud();
+}
+
+/* ---- draw ---- */
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  for(let r=0;r<20;r++){
+    for(let c=0;c<10;c++){
+      const cell = playfield[r][c];
+      ctx.fillStyle = cell ? colors[cell] : "#020617";
+      ctx.fillRect(c*grid,r*grid,grid-1,grid-1);
+    }
+  }
+
+  ctx.fillStyle = colors[piece.name];
+  piece.matrix.forEach((row,r)=>{
+    row.forEach((v,c)=>{
+      if(v){
+        ctx.fillRect(
+          (piece.col+c)*grid,
+          (piece.row+r)*grid,
+          grid-1,grid-1
+        );
+      }
+    });
+  });
+}
+
+/* ---- main loop ---- */
+function loop(){
+  if(gameOver || isPaused || isPausedForQuestion || !gameStarted) return;
+
+  frameCounter++;
+  if(frameCounter >= gravityFrames){
+    frameCounter = 0;
+    if(valid(piece.matrix, piece.row+1, piece.col)){
+      piece.row++;
+    }else{
+      lockPiece();
+    }
+  }
+
+  draw();
+  requestAnimationFrame(loop);
+}
+
+/* ---- desktop keys ---- */
+document.addEventListener("keydown",e=>{
+  if(!gameStarted || gameOver || isPaused || isPausedForQuestion) return;
+
+  if(e.key==="ArrowLeft" && valid(piece.matrix,piece.row,piece.col-1)) piece.col--;
+  if(e.key==="ArrowRight"&& valid(piece.matrix,piece.row,piece.col+1)) piece.col++;
+  if(e.key==="ArrowUp"){
+    const r = rotate(piece.matrix);
+    if(valid(r,piece.row,piece.col)) piece.matrix = r;
+  }
+  if(e.key==="ArrowDown"){
+    if(valid(piece.matrix,piece.row+1,piece.col)) piece.row++;
+  }
+});
+
+/* ---- mobile buttons ---- */
+const moveLeftBtn  = document.getElementById("moveLeftBtn");
+const moveRightBtn = document.getElementById("moveRightBtn");
+const rotateBtn    = document.getElementById("rotateBtn");
+const moveDownBtn  = document.getElementById("moveDownBtn");
+
+function bind(btn, fn){
+  if(!btn) return;
+  btn.addEventListener("click", fn);
+  btn.addEventListener("touchstart", (e)=>{ e.preventDefault(); fn(); }, {passive:false});
+}
+bind(moveLeftBtn, ()=>{ if(valid(piece.matrix,piece.row,piece.col-1)) piece.col--; });
+bind(moveRightBtn,()=>{ if(valid(piece.matrix,piece.row,piece.col+1)) piece.col++; });
+bind(rotateBtn,   ()=>{
+  const r = rotate(piece.matrix);
+  if(valid(r,piece.row,piece.col)) piece.matrix = r;
+});
+
+/* tap down = 1, hold = fast */
+let downHold=false, downTimer=null;
+if(moveDownBtn){
+  moveDownBtn.addEventListener("click", ()=>{
+    if(!gameStarted || gameOver || isPaused || isPausedForQuestion) return;
+    if(valid(piece.matrix,piece.row+1,piece.col)) piece.row++;
+    else lockPiece();
+  });
+
+  moveDownBtn.addEventListener("touchstart", (e)=>{
+    e.preventDefault();
+    if(!gameStarted || gameOver || isPaused || isPausedForQuestion) return;
+
+    downHold = true;
+    // immediate
+    if(valid(piece.matrix,piece.row+1,piece.col)) piece.row++;
+    else lockPiece();
+
+    downTimer = setInterval(()=>{
+      if(!downHold) return;
+      if(valid(piece.matrix,piece.row+1,piece.col)) piece.row++;
+      else lockPiece();
+    }, 55);
+  }, {passive:false});
+
+  const stopHold = ()=>{
+    downHold = false;
+    if(downTimer){ clearInterval(downTimer); downTimer=null; }
+  };
+  moveDownBtn.addEventListener("touchend", stopHold);
+  moveDownBtn.addEventListener("touchcancel", stopHold);
+}
+
+/* ======================================================
+   QUESTION GATE (works now, content later)
+   - 100 questions
+   - shuffle
+   - loop forever
+   - +100 only if correct on FIRST TRY
+   - cannot continue until correct
+   ====================================================== */
+
+let currentQuestionIndex = 0;
+
+/******************************************************
+ *
+ * 🧠 BOOHA BLOCKS — QUESTION CONTENT START
+ *
+ * Drop your 100 questions here later.
+ * REQUIRED FORMAT:
+ * {
+ *   question: "What is ...?",
+ *   choices: ["A","B","C","D"],
+ *   correctIndex: 0
+ * }
+ *
+ ******************************************************/
+const QUESTIONS_RAW = [
+  {
+    question: "「私（わたし）」は英語で？",
+    choices: ["I", "you", "me", "my"],
+    correctIndex: 0
+  },
+  {
+    question: "「あなた」は英語で？",
+    choices: ["you", "your", "we", "they"],
+    correctIndex: 0
+  },
+  {
+    question: "「彼（かれ）」は英語で？",
+    choices: ["he", "his", "him", "she"],
+    correctIndex: 0
+  },
+  {
+    question: "「彼女（かのじょ）」は英語で？",
+    choices: ["she", "her", "he", "hers"],
+    correctIndex: 0
+  },
+  {
+    question: "「人々（ひとびと）」は英語で？",
+    choices: ["people", "person", "family", "friends"],
+    correctIndex: 0
+  },
+  {
+    question: "「もの／こと」は英語で？",
+    choices: ["thing", "stuff", "item", "object"],
+    correctIndex: 0
+  },
+  {
+    question: "「時間（じかん）」は英語で？",
+    choices: ["time", "day", "hour", "moment"],
+    correctIndex: 0
+  },
+  {
+    question: "「年（とし）」は英語で？",
+    choices: ["year", "month", "week", "time"],
+    correctIndex: 0
+  },
+  {
+    question: "「今日（きょう）」は英語で？",
+    choices: ["today", "now", "this day", "tonight"],
+    correctIndex: 0
+  },
+  {
+    question: "「今（いま）」は英語で？",
+    choices: ["now", "today", "soon", "then"],
+    correctIndex: 0
+  },
+
+  {
+    question: "「行く（いく）」は英語で？",
+    choices: ["go", "come", "move", "walk"],
+    correctIndex: 0
+  },
+  {
+    question: "「来る（くる）」は英語で？",
+    choices: ["come", "go", "arrive", "visit"],
+    correctIndex: 0
+  },
+  {
+    question: "「する」は英語で？",
+    choices: ["do", "make", "work", "try"],
+    correctIndex: 0
+  },
+  {
+    question: "「作る（つくる）」は英語で？",
+    choices: ["make", "do", "build", "create"],
+    correctIndex: 0
+  },
+  {
+    question: "「見る（みる）」は英語で？",
+    choices: ["see", "look", "watch", "view"],
+    correctIndex: 0
+  },
+  {
+    question: "「言う（いう）」は英語で？",
+    choices: ["say", "tell", "speak", "talk"],
+    correctIndex: 0
+  },
+  {
+    question: "「食べる（たべる）」は英語で？",
+    choices: ["eat", "drink", "have", "take"],
+    correctIndex: 0
+  },
+  {
+    question: "「飲む（のむ）」は英語で？",
+    choices: ["drink", "eat", "take", "use"],
+    correctIndex: 0
+  },
+  {
+    question: "「使う（つかう）」は英語で？",
+    choices: ["use", "make", "take", "need"],
+    correctIndex: 0
+  },
+  {
+    question: "「知る（しる）」は英語で？",
+    choices: ["know", "think", "learn", "understand"],
+    correctIndex: 0
+  },
+
+  {
+    question: "「良い（よい）」は英語で？",
+    choices: ["good", "nice", "fine", "best"],
+    correctIndex: 0
+  },
+  {
+    question: "「悪い（わるい）」は英語で？",
+    choices: ["bad", "wrong", "poor", "sad"],
+    correctIndex: 0
+  },
+  {
+    question: "「大きい（おおきい）」は英語で？",
+    choices: ["big", "large", "tall", "huge"],
+    correctIndex: 0
+  },
+  {
+    question: "「小さい（ちいさい）」は英語で？",
+    choices: ["small", "little", "short", "tiny"],
+    correctIndex: 0
+  },
+  {
+    question: "「多い（おおい）」は英語で？",
+    choices: ["many", "much", "lot", "more"],
+    correctIndex: 0
+  },
+  {
+    question: "「少ない（すくない）」は英語で？",
+    choices: ["few", "little", "less", "small"],
+    correctIndex: 0
+  },
+  {
+    question: "「新しい（あたらしい）」は英語で？",
+    choices: ["new", "fresh", "young", "recent"],
+    correctIndex: 0
+  },
+  {
+    question: "「古い（ふるい）」は英語で？",
+    choices: ["old", "past", "long", "early"],
+    correctIndex: 0
+  },
+  {
+    question: "「早い（はやい）」は英語で？",
+    choices: ["fast", "early", "quick", "soon"],
+    correctIndex: 0
+  },
+  {
+    question: "「遅い（おそい）」は英語で？",
+    choices: ["late", "slow", "long", "bad"],
+    correctIndex: 0
+  },
+
+  {
+    question: "「家（いえ）」は英語で？",
+    choices: ["house", "home", "room", "place"],
+    correctIndex: 0
+  },
+  {
+    question: "「学校（がっこう）」は英語で？",
+    choices: ["school", "class", "study", "teacher"],
+    correctIndex: 0
+  },
+  {
+    question: "「仕事（しごと）」は英語で？",
+    choices: ["work", "job", "task", "office"],
+    correctIndex: 0
+  },
+  {
+    question: "「友だち（ともだち）」は英語で？",
+    choices: ["friend", "people", "family", "buddy"],
+    correctIndex: 0
+  },
+  {
+    question: "「先生（せんせい）」は英語で？",
+    choices: ["teacher", "doctor", "leader", "master"],
+    correctIndex: 0
+  },
+  {
+    question: "「子ども（こども）」は英語で？",
+    choices: ["child", "kid", "baby", "student"],
+    correctIndex: 0
+  },
+  {
+    question: "「お金（おかね）」は英語で？",
+    choices: ["money", "cash", "pay", "price"],
+    correctIndex: 0
+  },
+  {
+    question: "「食べ物（たべもの）」は英語で？",
+    choices: ["food", "meal", "lunch", "dinner"],
+    correctIndex: 0
+  },
+  {
+    question: "「水（みず）」は英語で？",
+    choices: ["water", "drink", "juice", "tea"],
+    correctIndex: 0
+  }
+];
+
+/******************************************************
+ *
+ * 🧠 BOOHA BLOCKS — QUESTION CONTENT END
+ *
+ ******************************************************/
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+let QUESTIONS = [];
+function buildQuestions(){
+  // duplicate if you test with 1 item; later you’ll paste 100 and this stays fine
+  QUESTIONS = shuffle(QUESTIONS_RAW.slice());
+  if(!QUESTIONS.length) QUESTIONS = QUESTIONS_RAW.slice();
+}
+buildQuestions();
+
+const qOverlay = document.getElementById("questionOverlay");
+const qText = document.getElementById("questionText");
+const choiceWrap = document.getElementById("choiceWrap");
+
+let firstTry = true;
+
+function maybeTriggerQuestion(){
+  const threshold = (currentQuestionIndex + 1) * 10;
+  if(linesClearedTotal >= threshold){
+    showQuestion();
+  }
+}
+
+function showQuestion(){
+  isPausedForQuestion = true;
+  firstTry = true;
+
+  // ensure endless loop + reshuffle after cycle
+  if(currentQuestionIndex % QUESTIONS.length === 0){
+    buildQuestions();
+  }
+
+  const q = QUESTIONS[currentQuestionIndex % QUESTIONS.length];
+
+  qText.textContent = q.question;
+  choiceWrap.innerHTML = "";
+
+  q.choices.forEach((txt, i)=>{
+    const b = document.createElement("button");
+    b.className = "choiceBtn";
+    b.type = "button";
+    b.textContent = txt;
+
+    b.addEventListener("click", ()=>{
+      if(i === q.correctIndex){
+        b.classList.add("correct");
+
+        // +100 ONLY if first try
+        if(firstTry){
+          score += 100;
+          updateGravity();
+          updateHud();
+        }
+
+        // must click correct to continue
+        setTimeout(()=>{
+          qOverlay.style.display = "none";
+          isPausedForQuestion = false;
+          currentQuestionIndex++;
+          updateHud();
+        }, 420);
+      } else {
+        // wrong = no points (and keep gate locked)
+        b.classList.add("wrong");
+        firstTry = false;
+        setTimeout(()=>b.classList.remove("wrong"), 260);
+      }
+    });
+
+    choiceWrap.appendChild(b);
+  });
+
+  qOverlay.style.display = "flex";
+}
+
+/* ======================================================
+   pause/help/leaderboard (minimal: keep your UI, not needed now)
+   ====================================================== */
+const pauseBtn = document.getElementById("pauseBtn");
+const pauseOverlay = document.getElementById("pauseOverlay");
+pauseBtn.onclick = ()=>{
+  if(!gameStarted || gameOver) return;
+  isPaused = !isPaused;
+  pauseOverlay.style.display = isPaused ? "flex" : "none";
+};
+pauseOverlay.onclick = ()=>{ isPaused=false; pauseOverlay.style.display="none"; };
+
+const helpBtn = document.getElementById("helpBtn");
+const helpOverlay = document.getElementById("helpOverlay");
+const helpClose = document.getElementById("helpClose");
+helpBtn.onclick = ()=>{
+  if(!gameStarted || gameOver) return;
+  isPaused = true;
+  pauseOverlay.style.display = "none";
+  helpOverlay.style.display = "flex";
+};
+helpClose.onclick = ()=>{
+  helpOverlay.style.display = "none";
+  isPaused = false;
+};
+
+const trophyBtn = document.getElementById("trophyBtn");
+const leaderboardOverlay = document.getElementById("leaderboardOverlay");
+const leaderClose = document.getElementById("leaderClose");
+trophyBtn.onclick = ()=>{
+  if(!gameStarted) return;
+  isPaused = true;
+  leaderboardOverlay.style.display = "flex";
+};
+leaderClose.onclick = ()=>{
+  leaderboardOverlay.style.display = "none";
+  isPaused = false;
+};
+
+/* ---- start overlay ---- */
+const startOverlay = document.getElementById("startOverlay");
+const startInner = document.getElementById("startOverlayInner");
+
+function startGame(){
+  if(gameStarted) return;
+  gameStarted = true;
+
+  let count = 3;
+  startInner.innerHTML = `<span class="big">${count}</span>`;
+
+  const timer = setInterval(()=>{
+    count--;
+    if(count > 0){
+      startInner.innerHTML = `<span class="big">${count}</span>`;
+    }else{
+      clearInterval(timer);
+      startInner.innerHTML = `<span class="big">GO!</span>`;
+      setTimeout(()=>{
+        startOverlay.style.display = "none";
+        updateHud();
+        requestAnimationFrame(loop);
+      }, 500);
+    }
+  }, 700);
+}
+startOverlay.addEventListener("click", startGame);
+startOverlay.addEventListener("touchstart", (e)=>{ e.preventDefault(); startGame(); }, {passive:false});
+
+/* ---- init ---- */
+updateGravity();
+updateHud();
+</script>
+</body>
+</html>
