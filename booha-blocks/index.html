@@ -568,7 +568,7 @@
 
   <h1>
     BOOHA BLOCKS
-    <span>１月のれんしゅう</span>
+    <span>ブーハー・ブロックス</span>
   </h1>
 
   <div id="helpBtn">？</div>
@@ -1055,6 +1055,26 @@ function lockPiece(){
   updateHud();
 }
 
+/* =========================
+   ✅ SAFE QUESTION SCHEDULER
+   - prevents “game won’t open” crashes
+   - prevents quiz from interrupting clears
+   ========================= */
+let pendingQuestionCheck = false;
+let questionTimer = null;
+
+function scheduleQuestionCheck(){
+  // cancel older schedule (if multiple clears happen quickly)
+  if(questionTimer){ clearTimeout(questionTimer); questionTimer = null; }
+
+  // wait 1 paint + small gap so SFX / shimmer settle
+  requestAnimationFrame(()=>{
+    questionTimer = setTimeout(()=>{
+      pendingQuestionCheck = true; // loop will handle it safely
+    }, 180);
+  });
+}
+
 /* ---- remove cleared rows after shimmer ---- */
 function commitLineClear(){
   clearingRows.sort((a,b)=>b-a).forEach(r=>{
@@ -1073,12 +1093,8 @@ function commitLineClear(){
     /* ✅ level color + LEVEL UP sound */
     applyLevelThemeAndMaybeSound();
 
-    // ✅ Defer quiz until AFTER clear commit + paint + short audio gap
-    requestAnimationFrame(()=>{
-      setTimeout(()=>{
-        maybeTriggerQuestion();
-      }, 180); // safe gap after clear animation + sound
-    });
+    /* ✅ schedule quiz check safely (DON’T call maybeTriggerQuestion here) */
+    scheduleQuestionCheck();
   }
 
   // ✅ finish clear ONCE
@@ -1087,7 +1103,6 @@ function commitLineClear(){
   piece = nextPiece();
   updateHud();
 }
-
 
 /* ---- draw ---- */
 function draw(){
@@ -1101,6 +1116,7 @@ function draw(){
     }
   }
 
+  // ✅ shimmer overlay while clearing
   if(isClearingLines && clearingRows.length){
     const t = (12 - clearTicks) / 12;
     clearingRows.forEach(r=>{
@@ -1115,6 +1131,7 @@ function draw(){
     });
   }
 
+  // active piece
   ctx.fillStyle = colors[piece.name];
   piece.matrix.forEach((row,r)=>{
     row.forEach((v,c)=>{
@@ -1131,12 +1148,19 @@ function draw(){
   drawParticles();
 }
 
-
 /* ---- main loop ---- */
 function loop(){
   if(gameOver || isPaused || isPausedForQuestion || !gameStarted) return;
 
   tickGlow();
+
+  // ✅ if a quiz check was scheduled, do it ONLY when stable
+  if(pendingQuestionCheck && !isClearingLines){
+    pendingQuestionCheck = false;
+    if(typeof maybeTriggerQuestion === "function"){
+      maybeTriggerQuestion();
+    }
+  }
 
   if(isClearingLines){
     clearTicks--;
