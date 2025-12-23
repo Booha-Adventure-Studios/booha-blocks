@@ -1,7 +1,6 @@
 <!-- =========================
      BOOHA BLOCKS (UPDATED)
-     Part 1 / 3
-     Paste ALL parts together (Part 1 + Part 2 + Part 3) into ONE file.
+     FULL FILE (Part 1 + Part 2 + Part 3 merged)
      ========================= -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -9,8 +8,8 @@
   <meta charset="UTF-8">
   <title>Booha Blocks – Practice Deck</title>
 
-<link rel="icon" type="image/png" sizes="32x32" href="BooBlocks.png">
-<link rel="apple-touch-icon" href="BooBlocks.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="BooBlocks.png">
+  <link rel="apple-touch-icon" href="BooBlocks.png">
 
   <!-- no pinch zoom -->
   <meta name="viewport"
@@ -30,6 +29,9 @@
     /* ✅ reactive glow (JS updates) */
     --pulse:0;
     --pulse2:0;
+
+    /* ✅ extra flash for “alive” feel */
+    --flash:0;
   }
 
   /* RESET */
@@ -59,6 +61,25 @@
     font-family:'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     color:#f9fafb;
     overflow:hidden;
+  }
+
+  /* ✅ whole-screen flash when line clears */
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:5;
+    opacity:calc(0.10 * var(--flash));
+    background:
+      radial-gradient(circle at 30% 30%,
+        color-mix(in srgb, var(--pink) 55%, transparent) 0%,
+        transparent 55%),
+      radial-gradient(circle at 70% 70%,
+        color-mix(in srgb, var(--aqua) 55%, transparent) 0%,
+        transparent 60%);
+    filter:blur(14px);
+    transition:opacity .10s ease;
   }
 
   /* PHONE SHELL */
@@ -202,7 +223,8 @@
     box-shadow:
       0 0 calc(18px + (26px * var(--pulse))) color-mix(in srgb, var(--aqua) 55%, transparent),
       0 0 calc(38px + (60px * var(--pulse))) rgba(15,23,42,0.9),
-      0 0 calc(10px + (22px * var(--pulse))) color-mix(in srgb, var(--pink) 45%, transparent);
+      0 0 calc(10px + (22px * var(--pulse))) color-mix(in srgb, var(--pink) 45%, transparent),
+      0 0 calc(10px + (26px * var(--flash))) rgba(255,255,255,0.25);
     image-rendering:pixelated;
     touch-action:none;
     width:100%;
@@ -593,9 +615,6 @@
   </div>
 </div>
 
-<!-- =========================
-     Part 2 / 3
-     ========================= -->
 <script>
 /* ======================================================
    Booha Blocks – Points + Speed + Question Gate
@@ -603,6 +622,10 @@
    + ✅ Quiz every 5 lines
    + ✅ Line glimmer/sparkle clear + background pulse
    + ✅ Level colors
+   + ✅ FIX: quiz no longer freezes (resume loop)
+   + ✅ CHANGE: all line clears use clear.mp3
+   + ✅ CHANGE: quiz-open uses full-clear.mp3
+   + ✅ FX: stronger glow/flash on line clear
    ====================================================== */
 
 /* ---- iOS pinch zoom guard ---- */
@@ -625,6 +648,9 @@ let linesClearedTotal = 0;
 let gravityFrames = 40; // start slow
 let frameCounter = 0;
 
+/* ✅ loop safety (prevents double loops) */
+let rafId = 0;
+
 /* =========================
    ✅ AUDIO (same folder)
    ========================= */
@@ -632,17 +658,23 @@ let audioUnlocked = false;
 
 const SFX = {
   bgm: new Audio("booha-tetris-january.mp3"),
-  line: new Audio("booha-tetris-sound.mp3"),
-  full: new Audio("full-clear.mp3"),
+
+  /* ✅ all cleared lines */
+  clear: new Audio("clear.mp3"),
+
+  /* ✅ quiz-open sound (repurposed full-clear.mp3) */
+  quizOpen: new Audio("full-clear.mp3"),
+
+  /* ✅ quiz correct */
   correct: new Audio("correct.mp3")
 };
 
 SFX.bgm.loop = true;
 SFX.bgm.volume = 0.28;
 
-SFX.line.volume = 0.60;
-SFX.full.volume = 0.70;
-SFX.correct.volume = 0.75;
+SFX.clear.volume = 0.70;
+SFX.quizOpen.volume = 0.72;
+SFX.correct.volume = 0.78;
 
 function safePlay(a, {restart=true} = {}){
   if(!audioUnlocked || !a) return;
@@ -662,9 +694,7 @@ function unlockAudioOnce(){
 
   // iOS-friendly: load but do NOT "play all at once"
   try{
-    Object.values(SFX).forEach(a=>{
-      a.load();
-    });
+    Object.values(SFX).forEach(a=>a.load());
   }catch(_){}
 
   // Start BGM after unlock
@@ -705,16 +735,23 @@ function applyLevelTheme(){
    ========================= */
 let pulse = 0;   // fast pulse
 let pulse2 = 0;  // slower glow
+let flash = 0;   // quick “alive” flash
+
 function bumpGlow(lines){
   // stronger when more lines clear
-  pulse = Math.min(1.15, pulse + 0.22 + 0.12 * lines);
-  pulse2 = Math.min(1.0,  pulse2 + 0.18 + 0.08 * lines);
+  pulse  = Math.min(1.35, pulse  + 0.26 + 0.16 * lines);
+  pulse2 = Math.min(1.10, pulse2 + 0.20 + 0.10 * lines);
+  flash  = Math.min(1.00, flash  + 0.55 + 0.12 * lines);
 }
+
 function tickGlow(){
   pulse *= 0.90;
   pulse2 *= 0.965;
-  document.documentElement.style.setProperty("--pulse", pulse.toFixed(3));
+  flash *= 0.78;
+
+  document.documentElement.style.setProperty("--pulse",  pulse.toFixed(3));
   document.documentElement.style.setProperty("--pulse2", pulse2.toFixed(3));
+  document.documentElement.style.setProperty("--flash",  flash.toFixed(3));
 }
 
 /* ---- HUD ---- */
@@ -924,11 +961,12 @@ function lockPiece(){
     clearTicks = 12; // ~200ms shimmer
     pendingLinesToApply = fullRows.length;
 
-    // ✅ sounds: full clear vs normal clear
-    if(fullRows.length >= 4) safePlay(SFX.full);
-    else safePlay(SFX.line);
+    /* ✅ CHANGE: all cleared lines use clear.mp3 */
+    safePlay(SFX.clear);
 
+    /* ✅ FX: glow/flash */
     bumpGlow(fullRows.length);
+
     spawnClearParticles(fullRows);
     return; // wait to actually remove rows
   }
@@ -1022,7 +1060,7 @@ function loop(){
     if(clearTicks <= 0){
       commitLineClear();
     }
-    requestAnimationFrame(loop);
+    rafId = requestAnimationFrame(loop);
     return;
   }
 
@@ -1037,7 +1075,14 @@ function loop(){
   }
 
   draw();
-  requestAnimationFrame(loop);
+  rafId = requestAnimationFrame(loop);
+}
+
+/* ✅ restart loop safely (used after quiz closes) */
+function resumeLoop(){
+  if(gameOver || isPaused || isPausedForQuestion || !gameStarted) return;
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(loop);
 }
 
 /* ---- desktop keys ---- */
@@ -1109,240 +1154,64 @@ if(moveDownBtn){
 }
 </script>
 
-<!-- =========================
-     Part 3 / 3
-     ========================= -->
 <script>
 /* ======================================================
-   QUESTION GATE (works now, content later)
+   QUESTION GATE
    - 100 questions
    - shuffle
    - loop forever
    - +100 only if correct on FIRST TRY
    - cannot continue until correct
+   - ✅ FIX: resume game loop after correct (no freeze)
+   - ✅ SOUND: play full-clear.mp3 when quiz opens
    ====================================================== */
 
 let currentQuestionIndex = 0;
 
-/******************************************************
- *
- * 🧠 BOOHA BLOCKS — QUESTION CONTENT START
- *
- * Drop your 100 questions here later.
- * REQUIRED FORMAT:
- * {
- *   question: "What is ...?",
- *   choices: ["A","B","C","D"],
- *   correctIndex: 0
- * }
- *
- ******************************************************/
 const QUESTIONS_RAW = [
-  {
-    question: "「私（わたし）」は英語で？",
-    choices: ["I", "you", "me", "my"],
-    correctIndex: 0
-  },
-  {
-    question: "「あなた」は英語で？",
-    choices: ["you", "your", "we", "they"],
-    correctIndex: 0
-  },
-  {
-    question: "「彼（かれ）」は英語で？",
-    choices: ["he", "his", "him", "she"],
-    correctIndex: 0
-  },
-  {
-    question: "「彼女（かのじょ）」は英語で？",
-    choices: ["she", "her", "he", "hers"],
-    correctIndex: 0
-  },
-  {
-    question: "「人々（ひとびと）」は英語で？",
-    choices: ["people", "person", "family", "friends"],
-    correctIndex: 0
-  },
-  {
-    question: "「もの／こと」は英語で？",
-    choices: ["thing", "stuff", "item", "object"],
-    correctIndex: 0
-  },
-  {
-    question: "「時間（じかん）」は英語で？",
-    choices: ["time", "day", "hour", "moment"],
-    correctIndex: 0
-  },
-  {
-    question: "「年（とし）」は英語で？",
-    choices: ["year", "month", "week", "time"],
-    correctIndex: 0
-  },
-  {
-    question: "「今日（きょう）」は英語で？",
-    choices: ["today", "now", "this day", "tonight"],
-    correctIndex: 0
-  },
-  {
-    question: "「今（いま）」は英語で？",
-    choices: ["now", "today", "soon", "then"],
-    correctIndex: 0
-  },
+  { question: "「私（わたし）」は英語で？", choices: ["I", "you", "me", "my"], correctIndex: 0 },
+  { question: "「あなた」は英語で？", choices: ["you", "your", "we", "they"], correctIndex: 0 },
+  { question: "「彼（かれ）」は英語で？", choices: ["he", "his", "him", "she"], correctIndex: 0 },
+  { question: "「彼女（かのじょ）」は英語で？", choices: ["she", "her", "he", "hers"], correctIndex: 0 },
+  { question: "「人々（ひとびと）」は英語で？", choices: ["people", "person", "family", "friends"], correctIndex: 0 },
+  { question: "「もの／こと」は英語で？", choices: ["thing", "stuff", "item", "object"], correctIndex: 0 },
+  { question: "「時間（じかん）」は英語で？", choices: ["time", "day", "hour", "moment"], correctIndex: 0 },
+  { question: "「年（とし）」は英語で？", choices: ["year", "month", "week", "time"], correctIndex: 0 },
+  { question: "「今日（きょう）」は英語で？", choices: ["today", "now", "this day", "tonight"], correctIndex: 0 },
+  { question: "「今（いま）」は英語で？", choices: ["now", "today", "soon", "then"], correctIndex: 0 },
 
-  {
-    question: "「行く（いく）」は英語で？",
-    choices: ["go", "come", "move", "walk"],
-    correctIndex: 0
-  },
-  {
-    question: "「来る（くる）」は英語で？",
-    choices: ["come", "go", "arrive", "visit"],
-    correctIndex: 0
-  },
-  {
-    question: "「する」は英語で？",
-    choices: ["do", "make", "work", "try"],
-    correctIndex: 0
-  },
-  {
-    question: "「作る（つくる）」は英語で？",
-    choices: ["make", "do", "build", "create"],
-    correctIndex: 0
-  },
-  {
-    question: "「見る（みる）」は英語で？",
-    choices: ["see", "look", "watch", "view"],
-    correctIndex: 0
-  },
-  {
-    question: "「言う（いう）」は英語で？",
-    choices: ["say", "tell", "speak", "talk"],
-    correctIndex: 0
-  },
-  {
-    question: "「食べる（たべる）」は英語で？",
-    choices: ["eat", "drink", "have", "take"],
-    correctIndex: 0
-  },
-  {
-    question: "「飲む（のむ）」は英語で？",
-    choices: ["drink", "eat", "take", "use"],
-    correctIndex: 0
-  },
-  {
-    question: "「使う（つかう）」は英語で？",
-    choices: ["use", "make", "take", "need"],
-    correctIndex: 0
-  },
-  {
-    question: "「知る（しる）」は英語で？",
-    choices: ["know", "think", "learn", "understand"],
-    correctIndex: 0
-  },
+  { question: "「行く（いく）」は英語で？", choices: ["go", "come", "move", "walk"], correctIndex: 0 },
+  { question: "「来る（くる）」は英語で？", choices: ["come", "go", "arrive", "visit"], correctIndex: 0 },
+  { question: "「する」は英語で？", choices: ["do", "make", "work", "try"], correctIndex: 0 },
+  { question: "「作る（つくる）」は英語で？", choices: ["make", "do", "build", "create"], correctIndex: 0 },
+  { question: "「見る（みる）」は英語で？", choices: ["see", "look", "watch", "view"], correctIndex: 0 },
+  { question: "「言う（いう）」は英語で？", choices: ["say", "tell", "speak", "talk"], correctIndex: 0 },
+  { question: "「食べる（たべる）」は英語で？", choices: ["eat", "drink", "have", "take"], correctIndex: 0 },
+  { question: "「飲む（のむ）」は英語で？", choices: ["drink", "eat", "take", "use"], correctIndex: 0 },
+  { question: "「使う（つかう）」は英語で？", choices: ["use", "make", "take", "need"], correctIndex: 0 },
+  { question: "「知る（しる）」は英語で？", choices: ["know", "think", "learn", "understand"], correctIndex: 0 },
 
-  {
-    question: "「良い（よい）」は英語で？",
-    choices: ["good", "nice", "fine", "best"],
-    correctIndex: 0
-  },
-  {
-    question: "「悪い（わるい）」は英語で？",
-    choices: ["bad", "wrong", "poor", "sad"],
-    correctIndex: 0
-  },
-  {
-    question: "「大きい（おおきい）」は英語で？",
-    choices: ["big", "large", "tall", "huge"],
-    correctIndex: 0
-  },
-  {
-    question: "「小さい（ちいさい）」は英語で？",
-    choices: ["small", "little", "short", "tiny"],
-    correctIndex: 0
-  },
-  {
-    question: "「多い（おおい）」は英語で？",
-    choices: ["many", "much", "lot", "more"],
-    correctIndex: 0
-  },
-  {
-    question: "「少ない（すくない）」は英語で？",
-    choices: ["few", "little", "less", "small"],
-    correctIndex: 0
-  },
-  {
-    question: "「新しい（あたらしい）」は英語で？",
-    choices: ["new", "fresh", "young", "recent"],
-    correctIndex: 0
-  },
-  {
-    question: "「古い（ふるい）」は英語で？",
-    choices: ["old", "past", "long", "early"],
-    correctIndex: 0
-  },
-  {
-    question: "「早い（はやい）」は英語で？",
-    choices: ["fast", "early", "quick", "soon"],
-    correctIndex: 0
-  },
-  {
-    question: "「遅い（おそい）」は英語で？",
-    choices: ["late", "slow", "long", "bad"],
-    correctIndex: 0
-  },
+  { question: "「良い（よい）」は英語で？", choices: ["good", "nice", "fine", "best"], correctIndex: 0 },
+  { question: "「悪い（わるい）」は英語で？", choices: ["bad", "wrong", "poor", "sad"], correctIndex: 0 },
+  { question: "「大きい（おおきい）」は英語で？", choices: ["big", "large", "tall", "huge"], correctIndex: 0 },
+  { question: "「小さい（ちいさい）」は英語で？", choices: ["small", "little", "short", "tiny"], correctIndex: 0 },
+  { question: "「多い（おおい）」は英語で？", choices: ["many", "much", "lot", "more"], correctIndex: 0 },
+  { question: "「少ない（すくない）」は英語で？", choices: ["few", "little", "less", "small"], correctIndex: 0 },
+  { question: "「新しい（あたらしい）」は英語で？", choices: ["new", "fresh", "young", "recent"], correctIndex: 0 },
+  { question: "「古い（ふるい）」は英語で？", choices: ["old", "past", "long", "early"], correctIndex: 0 },
+  { question: "「早い（はやい）」は英語で？", choices: ["fast", "early", "quick", "soon"], correctIndex: 0 },
+  { question: "「遅い（おそい）」は英語で？", choices: ["late", "slow", "long", "bad"], correctIndex: 0 },
 
-  {
-    question: "「家（いえ）」は英語で？",
-    choices: ["house", "home", "room", "place"],
-    correctIndex: 0
-  },
-  {
-    question: "「学校（がっこう）」は英語で？",
-    choices: ["school", "class", "study", "teacher"],
-    correctIndex: 0
-  },
-  {
-    question: "「仕事（しごと）」は英語で？",
-    choices: ["work", "job", "task", "office"],
-    correctIndex: 0
-  },
-  {
-    question: "「友だち（ともだち）」は英語で？",
-    choices: ["friend", "people", "family", "buddy"],
-    correctIndex: 0
-  },
-  {
-    question: "「先生（せんせい）」は英語で？",
-    choices: ["teacher", "doctor", "leader", "master"],
-    correctIndex: 0
-  },
-  {
-    question: "「子ども（こども）」は英語で？",
-    choices: ["child", "kid", "baby", "student"],
-    correctIndex: 0
-  },
-  {
-    question: "「お金（おかね）」は英語で？",
-    choices: ["money", "cash", "pay", "price"],
-    correctIndex: 0
-  },
-  {
-    question: "「食べ物（たべもの）」は英語で？",
-    choices: ["food", "meal", "lunch", "dinner"],
-    correctIndex: 0
-  },
-  {
-    question: "「水（みず）」は英語で？",
-    choices: ["water", "drink", "juice", "tea"],
-    correctIndex: 0
-  }
+  { question: "「家（いえ）」は英語で？", choices: ["house", "home", "room", "place"], correctIndex: 0 },
+  { question: "「学校（がっこう）」は英語で？", choices: ["school", "class", "study", "teacher"], correctIndex: 0 },
+  { question: "「仕事（しごと）」は英語で？", choices: ["work", "job", "task", "office"], correctIndex: 0 },
+  { question: "「友だち（ともだち）」は英語で？", choices: ["friend", "people", "family", "buddy"], correctIndex: 0 },
+  { question: "「先生（せんせい）」は英語で？", choices: ["teacher", "doctor", "leader", "master"], correctIndex: 0 },
+  { question: "「子ども（こども）」は英語で？", choices: ["child", "kid", "baby", "student"], correctIndex: 0 },
+  { question: "「お金（おかね）」は英語で？", choices: ["money", "cash", "pay", "price"], correctIndex: 0 },
+  { question: "「食べ物（たべもの）」は英語で？", choices: ["food", "meal", "lunch", "dinner"], correctIndex: 0 },
+  { question: "「水（みず）」は英語で？", choices: ["water", "drink", "juice", "tea"], correctIndex: 0 }
 ];
-
-/******************************************************
- *
- * 🧠 BOOHA BLOCKS — QUESTION CONTENT END
- *
- ******************************************************/
 
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
@@ -1364,6 +1233,7 @@ const qText = document.getElementById("questionText");
 const choiceWrap = document.getElementById("choiceWrap");
 
 let firstTry = true;
+let questionOpen = false;
 
 function maybeTriggerQuestion(){
   const threshold = (currentQuestionIndex + 1) * 5; // ✅ every 5 lines
@@ -1373,8 +1243,14 @@ function maybeTriggerQuestion(){
 }
 
 function showQuestion(){
+  if(questionOpen) return;
+  questionOpen = true;
+
   isPausedForQuestion = true;
   firstTry = true;
+
+  /* ✅ play quiz-open sound */
+  safePlay(SFX.quizOpen);
 
   // ensure endless loop + reshuffle after cycle
   if(currentQuestionIndex % QUESTIONS.length === 0){
@@ -1396,7 +1272,7 @@ function showQuestion(){
       if(i === q.correctIndex){
         b.classList.add("correct");
 
-        // ✅ correct sound (popup quiz)
+        // ✅ correct sound
         safePlay(SFX.correct);
 
         // +100 ONLY if first try
@@ -1411,6 +1287,11 @@ function showQuestion(){
           isPausedForQuestion = false;
           currentQuestionIndex++;
           updateHud();
+
+          questionOpen = false;
+
+          /* ✅ FIX: resume the game loop so it never freezes */
+          resumeLoop();
         }, 420);
       } else {
         b.classList.add("wrong");
@@ -1426,7 +1307,7 @@ function showQuestion(){
 }
 
 /* ======================================================
-   pause/help/leaderboard (minimal: keep your UI, not needed now)
+   pause/help/leaderboard
    ====================================================== */
 const pauseBtn = document.getElementById("pauseBtn");
 const pauseOverlay = document.getElementById("pauseOverlay");
@@ -1434,8 +1315,9 @@ pauseBtn.onclick = ()=>{
   if(!gameStarted || gameOver) return;
   isPaused = !isPaused;
   pauseOverlay.style.display = isPaused ? "flex" : "none";
+  if(!isPaused) resumeLoop();
 };
-pauseOverlay.onclick = ()=>{ isPaused=false; pauseOverlay.style.display="none"; };
+pauseOverlay.onclick = ()=>{ isPaused=false; pauseOverlay.style.display="none"; resumeLoop(); };
 
 const helpBtn = document.getElementById("helpBtn");
 const helpOverlay = document.getElementById("helpOverlay");
@@ -1449,6 +1331,7 @@ helpBtn.onclick = ()=>{
 helpClose.onclick = ()=>{
   helpOverlay.style.display = "none";
   isPaused = false;
+  resumeLoop();
 };
 
 const trophyBtn = document.getElementById("trophyBtn");
@@ -1462,6 +1345,7 @@ trophyBtn.onclick = ()=>{
 leaderClose.onclick = ()=>{
   leaderboardOverlay.style.display = "none";
   isPaused = false;
+  resumeLoop();
 };
 
 /* ---- start overlay ---- */
@@ -1494,7 +1378,7 @@ function startGame(){
       setTimeout(()=>{
         startOverlay.style.display = "none";
         updateHud();
-        requestAnimationFrame(loop);
+        resumeLoop();
       }, 500);
     }
   }, 700);
@@ -1508,6 +1392,3 @@ updateHud();
 </script>
 </body>
 </html>
-  
-
-  
