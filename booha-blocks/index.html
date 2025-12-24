@@ -57,6 +57,33 @@ body{
   align-items:flex-start;
   justify-content:center;
 
+
+/* ==============================
+   iPad / iOS: STOP TAP-ZOOM + TEXT SELECT
+   (treat the game like an app surface)
+   ============================== */
+body, .shell, canvas, #startOverlay, #questionOverlay,
+#mobileControls, #mobileDownRow,
+.mob-btn, #moveDownBtn, .choiceBtn{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action:manipulation;
+}
+
+/* canvas should NEVER trigger zoom gestures */
+#game{
+  touch-action:none;              /* already present, keep it */
+  -ms-touch-action:none;
+}
+
+/* prevent iOS font-resize / zoom-ish reflow */
+html{
+  -webkit-text-size-adjust:100%;
+}
+
+     
   /* ✅ Always apply safe-area padding */
   padding-top:calc(2.5vh + env(safe-area-inset-top, 0px));
   padding-bottom:calc(2.5vh + env(safe-area-inset-bottom, 0px));
@@ -213,6 +240,68 @@ body{
     .shell{ transform:scale(0.82); transform-origin: top center; }
   }
 
+/* ==============================
+   iPad: bigger board (keep phones safe)
+   ============================== */
+@media (pointer:coarse) and (min-width: 768px){
+  /* iPad/tablet gets a taller canvas */
+  #game{
+    height:min(68svh, 760px);
+  }
+
+  /* slightly more room so the bigger board doesn't crowd controls */
+  .shell{
+    padding-bottom:72px;
+  }
+}
+
+
+/* ==============================
+   ANDROID / MOBILE: CENTERING FIXES
+   ============================== */
+
+/* make shell content alignment bulletproof */
+.shell{
+  text-align:center;
+}
+
+/* title stays centered even with Android font metrics */
+.shell h1{
+  width:100%;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+/* HUD rows should NOT be centered (they’re left/right by design) */
+.hud-row{
+  text-align:left;
+}
+
+/* quiz card: center the whole layout reliably */
+.q-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* question text and note: centered block width */
+#questionText,
+.q-note{
+  width:100%;
+  text-align:center;
+}
+
+/* choices grid: keep tiles centered within the card */
+#choiceWrap{
+  width:100%;
+  max-width:560px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+       
+
+       
   /* TITLE */
   h1{
     font-family:'Cinzel',serif;
@@ -396,6 +485,23 @@ body{
     inset 0 2px 4px rgba(0,0,0,0.25);
 }
 
+/* ==============================
+   MOBILE: STOP LONG-PRESS CALLOUT / SELECTION
+   ============================== */
+#mobileControls, #mobileDownRow, .mob-btn, #moveDownBtn{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action:manipulation;
+}
+
+#moveDownBtn{
+  -webkit-user-drag:none;
+}
+
+
+       
 /* ✅ show controls only on real touch devices */
 @media (hover:none) and (pointer:coarse){
   #mobileControls,
@@ -804,7 +910,10 @@ let frameCounter = 0;
 let rafId = 0;
 
 /* ==============================
-   AUDIO (same folder) ✅ FIXED
+   AUDIO (same folder) ✅ iPad-safe unlock
+   - Fix: iPad firing multiple sounds on first tap
+   - Strategy: preload via .load(), unlock with ONE muted play (bgm only),
+               start real BGM AFTER countdown/game start
    ============================== */
 let audioUnlocked = false;
 
@@ -817,7 +926,7 @@ const AUDIO_FILES = {
   levelUp: "correct.mp3",
 };
 
-/* persistent audio objects (use for longer sounds + no overlap needed) */
+/* persistent audio objects */
 const SFX = {
   bgm: new Audio(AUDIO_FILES.bgm),
   quizOpen: new Audio(AUDIO_FILES.quizOpen),
@@ -860,40 +969,39 @@ function playSFX(url, vol=1){
     const a = new Audio(url);
     a.preload = "auto";
     a.volume = vol;
+    a.load(); /* ✅ preload without playing (prevents iPad burst) */
     try{ a.currentTime = 0; }catch(_){}
     const p = a.play();
     if(p && typeof p.catch === "function") p.catch(()=>{});
   }catch(_){}
 }
 
-/* prime short silent play to unlock on iOS */
-async function primeUrl(url){
-  try{
-    const a = new Audio(url);
-    a.preload = "auto";
-    a.volume = 0.0001;
-    const p = a.play();
-    if(p && typeof p.then === "function"){
-      await p;
-      a.pause();
-      a.currentTime = 0;
-    }
-  }catch(_){}
+/* ✅ preload without playing (important for iPad) */
+function preloadAllAudio(){
+  try{ SFX.bgm.load(); }catch(_){}
+  try{ SFX.quizOpen.load(); }catch(_){}
+  try{ SFX.quizCorrect.load(); }catch(_){}
+  try{ SFX.levelUp.load(); }catch(_){}
+  try{ (new Audio(AUDIO_FILES.lineClear)).load(); }catch(_){}
 }
 
-/* ✅ ONE unlockAudioOnce (no duplicates) */
+/* ✅ ONE unlock: only touch-unlock with a muted BGM play (no other sounds) */
 async function unlockAudioOnce(){
   if(audioUnlocked) return;
   audioUnlocked = true;
 
-  // warm/prime small clips (prevents “no sound ever” on iOS)
-  await primeUrl(AUDIO_FILES.lineClear);
-  await primeUrl(AUDIO_FILES.quizOpen);
-  await primeUrl(AUDIO_FILES.quizCorrect);
-  await primeUrl(AUDIO_FILES.levelUp);
+  preloadAllAudio();
 
-  // start BGM
-  await safePlay(SFX.bgm, {restart:false});
+  // iPad Safari: avoid multiple play() calls inside the first gesture
+  const prevVol = SFX.bgm.volume;
+  try{
+    SFX.bgm.volume = 0.0001;       // practically silent
+    const p = SFX.bgm.play();      // single play to unlock
+    if(p && typeof p.catch === "function") await p.catch(()=>{});
+    try{ SFX.bgm.pause(); }catch(_){}
+    try{ SFX.bgm.currentTime = 0; }catch(_){}
+  }catch(_){}
+  SFX.bgm.volume = prevVol;
 }
 
 /* pause/resume BGM with UI pauses */
@@ -1342,6 +1450,8 @@ if(moveDownBtn){
 
   moveDownBtn.addEventListener("touchstart", (e)=>{
     e.preventDefault();
+    e.stopPropagation();
+   
     if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
 
     downHold = true;
