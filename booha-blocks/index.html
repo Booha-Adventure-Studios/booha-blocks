@@ -313,6 +313,12 @@ html{
   }
 }
        
+/* ✅ ANDROID: make the “phone frame” taller (no button size change) */
+@media (pointer:coarse) and (max-width: 520px){
+  .shell{
+    max-height:calc(100svh - 10px); /* taller shell frame */
+  }
+}
 
        
   /* TITLE */
