@@ -144,7 +144,7 @@ body{
 
     width:min(480px, 100vw - 24px);
     max-height:calc(100svh - (5vh + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)));
-    overflow:hidden; /* ✅ prevents inner layout from pushing controls off-screen */
+    overflow:visible; /* ✅ prevents inner layout from pushing controls off-screen */
 
   }
 
@@ -411,6 +411,11 @@ body{
   }
 }
 
+@media (pointer:coarse){
+  .shell{ padding-bottom:86px; }  /* space for the ↓ bar */
+  #game{ height:min(56svh, 620px); } /* free space so ↓ never gets pushed out */
+}
+       
 
   /* PAUSE OVERLAY */
   #pauseOverlay{
