@@ -299,6 +299,19 @@ html{
   margin-right:auto;
 }
 
+/* ==============================
+   MOBILE: EXTRA BOTTOM SPACE ONLY
+   (does NOT resize the rest)
+   ============================== */
+@media (pointer:coarse){
+  .shell{
+    padding-bottom:calc(
+      24px +                 /* original padding */
+      72px +                 /* space for ↓ bar */
+      env(safe-area-inset-bottom, 0px)
+    );
+  }
+}
        
 
        
