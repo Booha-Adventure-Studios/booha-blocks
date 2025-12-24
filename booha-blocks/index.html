@@ -483,26 +483,59 @@
     z-index:1;
     text-shadow:0 0 10px rgba(0,0,0,.35);
   }
-  .choices{
-    display:grid;
-    gap:10px;
-    margin-top:10px;
-    position:relative;
-    z-index:1;
+ /* ==============================
+   QUESTION CHOICES (MOBILE SAFE)
+   ============================== */
+
+#choiceWrap{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap:14px;                 /* ✅ space between tiles */
+  margin-top:10px;
+  padding:14px;
+  width:min(560px, 92vw);
+  margin-left:auto;
+  margin-right:auto;
+  position:relative;
+  z-index:1;
+}
+
+.choiceBtn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.08);
+  color:#f9fafb;
+
+  min-height:58px;          /* ✅ bigger tap target */
+  padding:14px 14px;
+  border-radius:16px;
+
+  font-weight:800;
+  cursor:pointer;
+  text-align:left;
+  line-height:1.15;
+
+  touch-action:manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  box-shadow:0 10px 24px rgba(0,0,0,.25);
+  transition:transform .08s ease, background .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+
+.choiceBtn:active{ transform:scale(.98); }
+
+@media (max-width: 420px){
+  #choiceWrap{
+    grid-template-columns: 1fr;  /* ✅ single column on tiny screens */
+    gap:12px;
+    padding:12px;
   }
   .choiceBtn{
-    appearance:none;
-    border:1px solid rgba(255,255,255,.22);
-    background:rgba(255,255,255,.08);
-    color:#f9fafb;
-    padding:12px 12px;
-    border-radius:14px;
-    font-weight:800;
-    cursor:pointer;
-    text-align:left;
-    box-shadow:0 10px 24px rgba(0,0,0,.25);
-    transition:transform .08s ease, background .12s ease, border-color .12s ease, box-shadow .12s ease;
+    min-height:60px;
+    font-size:18px;
   }
+}
+
   .choiceBtn:active{transform:scale(.98);}
   .choiceBtn.correct{
     background:rgba(34,197,94,.22);
@@ -1245,52 +1278,89 @@ if(moveDownBtn){
 
 <script>
 /* ==============================
-   QUESTION GATE
+   QUESTION GATE (UPDATED)
+   - ✅ Questions shuffle
+   - ✅ Choices shuffle (correctIndex preserved)
    ============================== */
 
 const QUESTIONS_RAW = [
-  { question: "「私（わたし）」は英語で？", choices: ["I", "you", "me", "my"], correctIndex: 0 },
-  { question: "「あなた」は英語で？", choices: ["you", "your", "we", "they"], correctIndex: 0 },
-  { question: "「彼（かれ）」は英語で？", choices: ["he", "his", "him", "she"], correctIndex: 0 },
-  { question: "「彼女（かのじょ）」は英語で？", choices: ["she", "her", "he", "hers"], correctIndex: 0 },
-  { question: "「人々（ひとびと）」は英語で？", choices: ["people", "person", "family", "friends"], correctIndex: 0 },
-  { question: "「もの／こと」は英語で？", choices: ["thing", "stuff", "item", "object"], correctIndex: 0 },
-  { question: "「時間（じかん）」は英語で？", choices: ["time", "day", "hour", "moment"], correctIndex: 0 },
-  { question: "「年（とし）」は英語で？", choices: ["year", "month", "week", "time"], correctIndex: 0 },
-  { question: "「今日（きょう）」は英語で？", choices: ["today", "now", "this day", "tonight"], correctIndex: 0 },
-  { question: "「今（いま）」は英語で？", choices: ["now", "today", "soon", "then"], correctIndex: 0 },
+  // ---- Core pronouns / basics ----
+  { question: "「私（わたし）」は英語で？", choices: ["I","me","my","you"], correctIndex: 0 },
+  { question: "「あなた」は英語で？", choices: ["you","your","I","we"], correctIndex: 0 },
+  { question: "「彼（かれ）」は英語で？", choices: ["he","him","his","she"], correctIndex: 0 },
+  { question: "「彼女（かのじょ）」は英語で？", choices: ["she","her","hers","he"], correctIndex: 0 },
+  { question: "「私たち」は英語で？", choices: ["we","us","our","they"], correctIndex: 0 },
+  { question: "「彼ら／彼女ら」は英語で？", choices: ["they","them","their","we"], correctIndex: 0 },
 
-  { question: "「行く（いく）」は英語で？", choices: ["go", "come", "move", "walk"], correctIndex: 0 },
-  { question: "「来る（くる）」は英語で？", choices: ["come", "go", "arrive", "visit"], correctIndex: 0 },
-  { question: "「する」は英語で？", choices: ["do", "make", "work", "try"], correctIndex: 0 },
-  { question: "「作る（つくる）」は英語で？", choices: ["make", "do", "build", "create"], correctIndex: 0 },
-  { question: "「見る（みる）」は英語で？", choices: ["see", "look", "watch", "view"], correctIndex: 0 },
-  { question: "「言う（いう）」は英語で？", choices: ["say", "tell", "speak", "talk"], correctIndex: 0 },
-  { question: "「食べる（たべる）」は英語で？", choices: ["eat", "drink", "have", "take"], correctIndex: 0 },
-  { question: "「飲む（のむ）」は英語で？", choices: ["drink", "eat", "take", "use"], correctIndex: 0 },
-  { question: "「使う（つかう）」は英語で？", choices: ["use", "make", "take", "need"], correctIndex: 0 },
-  { question: "「知る（しる）」は英語で？", choices: ["know", "think", "learn", "understand"], correctIndex: 0 },
+  // ---- Super common function words (harder / high-frequency) ----
+  { question: "「〜の／〜をする（持っている）」は英語で？", choices: ["have","make","take","give"], correctIndex: 0 },
+  { question: "「〜である」は英語で？", choices: ["be","do","go","get"], correctIndex: 0 },
+  { question: "「〜する」は英語で？", choices: ["do","make","work","try"], correctIndex: 0 },
+  { question: "「〜と言う」は英語で？", choices: ["say","tell","speak","talk"], correctIndex: 0 },
+  { question: "「〜へ行く」は英語で？", choices: ["go","come","walk","move"], correctIndex: 0 },
+  { question: "「〜来る」は英語で？", choices: ["come","go","arrive","visit"], correctIndex: 0 },
+  { question: "「〜見る」は英語で？", choices: ["see","look","watch","view"], correctIndex: 0 },
+  { question: "「〜知っている」は英語で？", choices: ["know","think","learn","remember"], correctIndex: 0 },
 
-  { question: "「良い（よい）」は英語で？", choices: ["good", "nice", "fine", "best"], correctIndex: 0 },
-  { question: "「悪い（わるい）」は英語で？", choices: ["bad", "wrong", "poor", "sad"], correctIndex: 0 },
-  { question: "「大きい（おおきい）」は英語で？", choices: ["big", "large", "tall", "huge"], correctIndex: 0 },
-  { question: "「小さい（ちいさい）」は英語で？", choices: ["small", "little", "short", "tiny"], correctIndex: 0 },
-  { question: "「多い（おおい）」は英語で？", choices: ["many", "much", "lot", "more"], correctIndex: 0 },
-  { question: "「少ない（すくない）」は英語で？", choices: ["few", "little", "less", "small"], correctIndex: 0 },
-  { question: "「新しい（あたらしい）」は英語で？", choices: ["new", "fresh", "young", "recent"], correctIndex: 0 },
-  { question: "「古い（ふるい）」は英語で？", choices: ["old", "past", "long", "early"], correctIndex: 0 },
-  { question: "「早い（はやい）」は英語で？", choices: ["fast", "early", "quick", "soon"], correctIndex: 0 },
-  { question: "「遅い（おそい）」は英語で？", choices: ["late", "slow", "long", "bad"], correctIndex: 0 },
+  { question: "「そして」は英語で？", choices: ["and","but","so","or"], correctIndex: 0 },
+  { question: "「でも（しかし）」は英語で？", choices: ["but","and","or","so"], correctIndex: 0 },
+  { question: "「または」は英語で？", choices: ["or","and","but","so"], correctIndex: 0 },
+  { question: "「だから」は英語で？", choices: ["so","because","but","or"], correctIndex: 0 },
+  { question: "「なぜなら」は英語で？", choices: ["because","so","but","then"], correctIndex: 0 },
 
-  { question: "「家（いえ）」は英語で？", choices: ["house", "home", "room", "place"], correctIndex: 0 },
-  { question: "「学校（がっこう）」は英語で？", choices: ["school", "class", "study", "teacher"], correctIndex: 0 },
-  { question: "「仕事（しごと）」は英語で？", choices: ["work", "job", "task", "office"], correctIndex: 0 },
-  { question: "「友だち（ともだち）」は英語で？", choices: ["friend", "people", "family", "buddy"], correctIndex: 0 },
-  { question: "「先生（せんせい）」は英語で？", choices: ["teacher", "doctor", "leader", "master"], correctIndex: 0 },
-  { question: "「子ども（こども）」は英語で？", choices: ["child", "kid", "baby", "student"], correctIndex: 0 },
-  { question: "「お金（おかね）」は英語で？", choices: ["money", "cash", "pay", "price"], correctIndex: 0 },
-  { question: "「食べ物（たべもの）」は英語で？", choices: ["food", "meal", "lunch", "dinner"], correctIndex: 0 },
-  { question: "「水（みず）」は英語で？", choices: ["water", "drink", "juice", "tea"], correctIndex: 0 }
+  { question: "「この」は英語で？", choices: ["this","that","these","those"], correctIndex: 0 },
+  { question: "「その（あれ）」は英語で？", choices: ["that","this","those","these"], correctIndex: 0 },
+  { question: "「これら」は英語で？", choices: ["these","those","this","that"], correctIndex: 0 },
+  { question: "「あれら」は英語で？", choices: ["those","these","that","this"], correctIndex: 0 },
+
+  { question: "「ここ」は英語で？", choices: ["here","there","where","near"], correctIndex: 0 },
+  { question: "「そこ／あそこ」は英語で？", choices: ["there","here","where","far"], correctIndex: 0 },
+  { question: "「どこ」は英語で？", choices: ["where","what","when","why"], correctIndex: 0 },
+  { question: "「いつ」は英語で？", choices: ["when","where","who","why"], correctIndex: 0 },
+  { question: "「何」は英語で？", choices: ["what","who","when","where"], correctIndex: 0 },
+  { question: "「だれ」は英語で？", choices: ["who","what","when","where"], correctIndex: 0 },
+  { question: "「どうして」は英語で？", choices: ["why","what","where","when"], correctIndex: 0 },
+  { question: "「どうやって」は英語で？", choices: ["how","why","what","who"], correctIndex: 0 },
+
+  { question: "「もし〜なら」は英語で？", choices: ["if","because","when","that"], correctIndex: 0 },
+  { question: "「〜の時」は英語で？", choices: ["when","if","then","while"], correctIndex: 0 },
+  { question: "「〜だから」は英語で？（理由）", choices: ["because","so","but","or"], correctIndex: 0 },
+  { question: "「〜よりも（比較）」は英語で？", choices: ["than","then","that","when"], correctIndex: 0 },
+
+  { question: "「とても」は英語で？", choices: ["very","really","too","so"], correctIndex: 0 },
+  { question: "「本当に」は英語で？", choices: ["really","very","surely","truly"], correctIndex: 0 },
+  { question: "「〜すぎる」は英語で？", choices: ["too","very","so","much"], correctIndex: 0 },
+  { question: "「たくさん（量）」は英語で？", choices: ["much","many","lot","more"], correctIndex: 0 },
+  { question: "「たくさん（数）」は英語で？", choices: ["many","much","more","most"], correctIndex: 0 },
+  { question: "「もっと」は英語で？", choices: ["more","most","many","much"], correctIndex: 0 },
+  { question: "「いちばん」は英語で？", choices: ["most","best","more","top"], correctIndex: 0 },
+
+  { question: "「〜の中で」は英語で？", choices: ["in","on","at","by"], correctIndex: 0 },
+  { question: "「〜の上に」は英語で？", choices: ["on","in","at","under"], correctIndex: 0 },
+  { question: "「〜へ（方向）」は英語で？", choices: ["to","for","with","from"], correctIndex: 0 },
+  { question: "「〜から」は英語で？", choices: ["from","to","for","by"], correctIndex: 0 },
+  { question: "「〜と一緒に」は英語で？", choices: ["with","for","by","from"], correctIndex: 0 },
+  { question: "「〜のために」は英語で？", choices: ["for","to","with","from"], correctIndex: 0 },
+  { question: "「〜によって／〜で（手段）」は英語で？", choices: ["by","with","from","to"], correctIndex: 0 },
+  { question: "「〜について」は英語で？", choices: ["about","around","over","after"], correctIndex: 0 },
+
+  { question: "「〜できる」は英語で？", choices: ["can","may","must","should"], correctIndex: 0 },
+  { question: "「〜しなければならない」は英語で？", choices: ["must","can","may","should"], correctIndex: 0 },
+  { question: "「〜したほうがいい」は英語で？", choices: ["should","must","can","may"], correctIndex: 0 },
+
+  { question: "「いつも」は英語で？", choices: ["always","often","usually","sometimes"], correctIndex: 0 },
+  { question: "「よく（頻度）」は英語で？", choices: ["often","always","never","rarely"], correctIndex: 0 },
+  { question: "「たいてい」は英語で？", choices: ["usually","always","often","sometimes"], correctIndex: 0 },
+  { question: "「ときどき」は英語で？", choices: ["sometimes","usually","often","always"], correctIndex: 0 },
+  { question: "「決して〜ない」は英語で？", choices: ["never","always","often","rarely"], correctIndex: 0 },
+
+  { question: "「今（いま）」は英語で？", choices: ["now","today","soon","then"], correctIndex: 0 },
+  { question: "「今日（きょう）」は英語で？", choices: ["today","now","tonight","this day"], correctIndex: 0 },
+  { question: "「今夜（こんや）」は英語で？", choices: ["tonight","today","now","tomorrow"], correctIndex: 0 },
+  { question: "「明日（あした）」は英語で？", choices: ["tomorrow","today","next day","soon"], correctIndex: 0 },
+  { question: "「昨日（きのう）」は英語で？", choices: ["yesterday","last day","past","before"], correctIndex: 0 },
+
+  // ---- You can keep adding more like this (the shuffle logic below will handle everything) ----
 ];
 
 function shuffle(arr){
@@ -1342,16 +1412,19 @@ function showQuestion(){
   qText.textContent = q.question;
   choiceWrap.innerHTML = "";
 
-  q.choices.forEach((txt, i)=>{
+  // ✅ Build choice objects with ORIGINAL index preserved, then shuffle
+  const choiceObjs = q.choices.map((txt, originalIndex)=>({ txt, originalIndex }));
+  shuffle(choiceObjs);
+
+  choiceObjs.forEach((c)=>{
     const b = document.createElement("button");
     b.className = "choiceBtn";
     b.type = "button";
-    b.textContent = txt;
+    b.textContent = c.txt;
 
     b.addEventListener("click", ()=>{
-      if(i === q.correctIndex){
+      if(c.originalIndex === q.correctIndex){
         b.classList.add("correct");
-
         safePlay(SFX.quizCorrect);
 
         if(firstTry){
@@ -1369,6 +1442,7 @@ function showQuestion(){
           questionOpen = false;
           resumeLoop();
         }, 420);
+
       } else {
         b.classList.add("wrong");
         firstTry = false;
@@ -1381,6 +1455,7 @@ function showQuestion(){
 
   qOverlay.style.display = "flex";
 }
+
 
 /* ==============================
    PAUSE / HELP / LEADERBOARD
