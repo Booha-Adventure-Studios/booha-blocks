@@ -768,24 +768,30 @@ html, body, #game, #ui, #controls, canvas{
 }
 
 /* ==============================
-   DESKTOP SIZE FIX (Step 1)
+   DESKTOP FIX (Step 1 — board only)
    ============================== */
 @media (min-width: 900px){
-  .titleSlot h1{ font-size: 44px; }
-  .titleSlot h1 span{ font-size: 16px; }
 
-  /* make the whole game area bigger on desktop */
+  /* Keep your nice layout — don’t giant-stretch the whole shell */
   .shell, .gameShell, .outerShell, .wrap, .frame{
-    width: min(1040px, 94vw) !important;
-    height: min(820px, 92vh) !important;
+    width: min(900px, 94vw) !important;
+    height: min(720px, 90vh) !important;
   }
 
-  /* make the board/canvas bigger if it’s being constrained */
+  /* IMPORTANT: do NOT auto-size canvas on desktop */
   canvas, .gameCanvas, #game, #board{
-    max-width: 100% !important;
-    height: auto !important;
+    height: unset !important;
+  }
+
+  /* Force the PLAYFIELD/BOARD to a sane desktop size */
+  #game, #board, canvas#game, canvas#board{
+    width: clamp(340px, 28vw, 520px) !important;
+    height: calc(clamp(340px, 28vw, 520px) * 2) !important; /* Tetris is 10x20 */
+    display: block !important;
+    margin: 0 auto !important;
   }
 }
+
 </style>
 
 
