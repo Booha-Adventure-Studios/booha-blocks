@@ -650,6 +650,14 @@
     font-size: 16px !important;
   }
 
+  /* ✅ iOS: stop double-tap/pinch + scroll lock on game UI */
+html, body, #game, #ui, #controls, canvas{
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+   
+
   /* ==============================
      LEADERBOARD OVERLAY (LOCAL) ✅ single source of truth
      ============================== */
