@@ -1870,68 +1870,203 @@ bindHoldRepeat(moveLeftBtn, stepLeft, 120, 55);
 bindHoldRepeat(moveRightBtn, stepRight, 120, 55);
 bindTap(rotateBtn, stepRotate);
 bindTap(moveDownBtn, downStepOne);
+   
 
 /* ==============================
-   QUESTION GATE
+   QUESTION GATE — CLEAN + 150 CORE WORDS
+   ✅ De-junked distractors (no “this day / next day / last day”)
+   ✅ Japanese + ひらがな in ( )
+   ✅ 150 “useful” core words (Booha Core)
+   ✅ correctIndex always 0
    ============================== */
+
 const QUESTIONS_RAW = [
+  // --- Pronouns / People ---
   { question: "「私（わたし）」は英語で？", choices: ["I","me","my","you"], correctIndex: 0 },
-  { question: "「あなた」は英語で？", choices: ["you","your","I","we"], correctIndex: 0 },
+  { question: "「あなた（あなた）」は英語で？", choices: ["you","your","I","we"], correctIndex: 0 },
   { question: "「彼（かれ）」は英語で？", choices: ["he","him","his","she"], correctIndex: 0 },
   { question: "「彼女（かのじょ）」は英語で？", choices: ["she","her","hers","he"], correctIndex: 0 },
-  { question: "「私たち」は英語で？", choices: ["we","us","our","they"], correctIndex: 0 },
-  { question: "「彼ら／彼女ら」は英語で？", choices: ["they","them","their","we"], correctIndex: 0 },
-  { question: "「〜の／〜をする（持っている）」は英語で？", choices: ["have","make","take","give"], correctIndex: 0 },
+  { question: "「私たち（わたしたち）」は英語で？", choices: ["we","us","our","they"], correctIndex: 0 },
+  { question: "「彼ら／彼女ら（かれら／かのじょら）」は英語で？", choices: ["they","them","their","we"], correctIndex: 0 },
+  { question: "「それ（それ）」は英語で？", choices: ["it","this","that","he"], correctIndex: 0 },
+
+  // --- Core verbs ---
+  { question: "「〜の／〜をする（もっている）」は英語で？", choices: ["have","get","make","take"], correctIndex: 0 },
   { question: "「〜である」は英語で？", choices: ["be","do","go","get"], correctIndex: 0 },
-  { question: "「〜する」は英語で？", choices: ["do","make","work","try"], correctIndex: 0 },
-  { question: "「〜と言う」は英語で？", choices: ["say","tell","speak","talk"], correctIndex: 0 },
-  { question: "「〜へ行く」は英語で？", choices: ["go","come","walk","move"], correctIndex: 0 },
-  { question: "「〜来る」は英語で？", choices: ["come","go","arrive","visit"], correctIndex: 0 },
-  { question: "「〜見る」は英語で？", choices: ["see","look","watch","view"], correctIndex: 0 },
-  { question: "「〜知っている」は英語で？", choices: ["know","think","learn","remember"], correctIndex: 0 },
-  { question: "「そして」は英語で？", choices: ["and","but","so","or"], correctIndex: 0 },
+  { question: "「〜する」は英語で？", choices: ["do","make","try","work"], correctIndex: 0 },
+  { question: "「〜作る（つくる）」は英語で？", choices: ["make","do","build","cook"], correctIndex: 0 },
+  { question: "「〜言う（いう）」は英語で？", choices: ["say","tell","speak","talk"], correctIndex: 0 },
+  { question: "「〜へ行く（いく）」は英語で？", choices: ["go","come","walk","move"], correctIndex: 0 },
+  { question: "「〜来る（くる）」は英語で？", choices: ["come","go","arrive","visit"], correctIndex: 0 },
+  { question: "「〜得る（える）／手に入れる（てにいれる）」は英語で？", choices: ["get","give","take","keep"], correctIndex: 0 },
+  { question: "「〜与える（あたえる）」は英語で？", choices: ["give","get","take","send"], correctIndex: 0 },
+  { question: "「〜取る（とる）」は英語で？", choices: ["take","get","give","bring"], correctIndex: 0 },
+  { question: "「〜置く（おく）」は英語で？", choices: ["put","push","pull","take"], correctIndex: 0 },
+
+  // --- See / Hear / Learn ---
+  { question: "「〜見る（みる）」は英語で？", choices: ["see","look","watch","view"], correctIndex: 0 },
+  { question: "「〜見る（ながめる）」は英語で？", choices: ["look","see","watch","find"], correctIndex: 0 },
+  { question: "「〜見る（えいぞうをみる）」は英語で？", choices: ["watch","see","look","hear"], correctIndex: 0 },
+  { question: "「〜聞く（きく）」は英語で？", choices: ["hear","listen","look","watch"], correctIndex: 0 },
+  { question: "「〜聞く（きいてみる）」は英語で？", choices: ["listen","hear","speak","read"], correctIndex: 0 },
+  { question: "「〜知っている（しっている）」は英語で？", choices: ["know","think","learn","remember"], correctIndex: 0 },
+  { question: "「〜思う（おもう）」は英語で？", choices: ["think","know","want","need"], correctIndex: 0 },
+  { question: "「〜欲しい（ほしい）」は英語で？", choices: ["want","need","like","get"], correctIndex: 0 },
+  { question: "「〜必要（ひつよう）だ」は英語で？", choices: ["need","want","use","help"], correctIndex: 0 },
+  { question: "「〜好き（すき）だ」は英語で？", choices: ["like","love","want","need"], correctIndex: 0 },
+  { question: "「〜愛する（あいする）」は英語で？", choices: ["love","like","want","miss"], correctIndex: 0 },
+
+  // --- Connectors / Logic ---
+  { question: "「そして（そして）」は英語で？", choices: ["and","but","so","or"], correctIndex: 0 },
   { question: "「でも（しかし）」は英語で？", choices: ["but","and","or","so"], correctIndex: 0 },
-  { question: "「または」は英語で？", choices: ["or","and","but","so"], correctIndex: 0 },
-  { question: "「だから」は英語で？", choices: ["so","because","but","or"], correctIndex: 0 },
-  { question: "「なぜなら」は英語で？", choices: ["because","so","but","then"], correctIndex: 0 },
-  { question: "「この」は英語で？", choices: ["this","that","these","those"], correctIndex: 0 },
-  { question: "「その（あれ）」は英語で？", choices: ["that","this","those","these"], correctIndex: 0 },
-  { question: "「これら」は英語で？", choices: ["these","those","this","that"], correctIndex: 0 },
-  { question: "「あれら」は英語で？", choices: ["those","these","that","this"], correctIndex: 0 },
-  { question: "「ここ」は英語で？", choices: ["here","there","where","near"], correctIndex: 0 },
-  { question: "「そこ／あそこ」は英語で？", choices: ["there","here","where","far"], correctIndex: 0 },
-  { question: "「どこ」は英語で？", choices: ["where","what","when","why"], correctIndex: 0 },
-  { question: "「いつ」は英語で？", choices: ["when","where","who","why"], correctIndex: 0 },
-  { question: "「何」は英語で？", choices: ["what","who","when","where"], correctIndex: 0 },
-  { question: "「だれ」は英語で？", choices: ["who","what","when","where"], correctIndex: 0 },
-  { question: "「どうして」は英語で？", choices: ["why","what","where","when"], correctIndex: 0 },
-  { question: "「どうやって」は英語で？", choices: ["how","why","what","who"], correctIndex: 0 },
-  { question: "「もし〜なら」は英語で？", choices: ["if","because","when","that"], correctIndex: 0 },
-  { question: "「〜の時」は英語で？", choices: ["when","if","then","while"], correctIndex: 0 },
-  { question: "「〜よりも（比較）」は英語で？", choices: ["than","then","that","when"], correctIndex: 0 },
-  { question: "「とても」は英語で？", choices: ["very","really","too","so"], correctIndex: 0 },
-  { question: "「本当に」は英語で？", choices: ["really","very","surely","truly"], correctIndex: 0 },
-  { question: "「〜すぎる」は英語で？", choices: ["too","very","so","much"], correctIndex: 0 },
-  { question: "「〜へ（方向）」は英語で？", choices: ["to","for","with","from"], correctIndex: 0 },
-  { question: "「〜から」は英語で？", choices: ["from","to","for","by"], correctIndex: 0 },
-  { question: "「〜と一緒に」は英語で？", choices: ["with","for","by","from"], correctIndex: 0 },
-  { question: "「〜のために」は英語で？", choices: ["for","to","with","from"], correctIndex: 0 },
-  { question: "「〜について」は英語で？", choices: ["about","around","over","after"], correctIndex: 0 },
-  { question: "「〜できる」は英語で？", choices: ["can","may","must","should"], correctIndex: 0 },
+  { question: "「または（または）」は英語で？", choices: ["or","and","but","so"], correctIndex: 0 },
+  { question: "「だから（だから）」は英語で？", choices: ["so","because","but","or"], correctIndex: 0 },
+  { question: "「なぜなら（なぜなら）」は英語で？", choices: ["because","so","but","or"], correctIndex: 0 },
+  { question: "「もし〜なら（もし〜なら）」は英語で？", choices: ["if","because","when","that"], correctIndex: 0 },
+  { question: "「〜の時（とき）」は英語で？", choices: ["when","if","then","while"], correctIndex: 0 },
+  { question: "「〜している間（あいだ）」は英語で？", choices: ["while","when","before","after"], correctIndex: 0 },
+  { question: "「〜よりも（ひかく）」は英語で？", choices: ["than","then","that","when"], correctIndex: 0 },
+
+  // --- This / That / Place ---
+  { question: "「この（この）」は英語で？", choices: ["this","that","these","those"], correctIndex: 0 },
+  { question: "「その／あれ（その／あれ）」は英語で？", choices: ["that","this","those","these"], correctIndex: 0 },
+  { question: "「これら（これら）」は英語で？", choices: ["these","those","this","that"], correctIndex: 0 },
+  { question: "「あれら（あれら）」は英語で？", choices: ["those","these","that","this"], correctIndex: 0 },
+  { question: "「ここ（ここ）」は英語で？", choices: ["here","there","where","near"], correctIndex: 0 },
+  { question: "「そこ／あそこ（そこ／あそこ）」は英語で？", choices: ["there","here","where","far"], correctIndex: 0 },
+
+  // --- Question words ---
+  { question: "「どこ（どこ）」は英語で？", choices: ["where","what","when","why"], correctIndex: 0 },
+  { question: "「いつ（いつ）」は英語で？", choices: ["when","where","who","why"], correctIndex: 0 },
+  { question: "「何（なに）」は英語で？", choices: ["what","who","when","where"], correctIndex: 0 },
+  { question: "「だれ（だれ）」は英語で？", choices: ["who","what","when","where"], correctIndex: 0 },
+  { question: "「どうして（どうして）」は英語で？", choices: ["why","what","where","when"], correctIndex: 0 },
+  { question: "「どうやって（どうやって）」は英語で？", choices: ["how","why","what","who"], correctIndex: 0 },
+
+  // --- Degree ---
+  { question: "「とても（とても）」は英語で？", choices: ["very","really","too","so"], correctIndex: 0 },
+  { question: "「本当に（ほんとうに）」は英語で？", choices: ["really","very","surely","truly"], correctIndex: 0 },
+  { question: "「〜すぎる（〜すぎる）」は英語で？", choices: ["too","very","so","much"], correctIndex: 0 },
+
+  // --- Prepositions ---
+  { question: "「〜へ（ほうこう）」は英語で？", choices: ["to","for","with","from"], correctIndex: 0 },
+  { question: "「〜から（〜から）」は英語で？", choices: ["from","to","for","by"], correctIndex: 0 },
+  { question: "「〜と一緒に（いっしょに）」は英語で？", choices: ["with","for","by","from"], correctIndex: 0 },
+  { question: "「〜のために（ために）」は英語で？", choices: ["for","to","with","from"], correctIndex: 0 },
+  { question: "「〜について（〜について）」は英語で？", choices: ["about","around","over","after"], correctIndex: 0 },
+  { question: "「〜の中に（なかに）」は英語で？", choices: ["in","on","at","into"], correctIndex: 0 },
+  { question: "「〜の上に（うえに）」は英語で？", choices: ["on","in","at","over"], correctIndex: 0 },
+  { question: "「〜で（ばしょ）／〜に（ばしょ）」は英語で？", choices: ["at","in","on","to"], correctIndex: 0 },
+  { question: "「〜へ（なかへ）」は英語で？", choices: ["into","in","to","on"], correctIndex: 0 },
+  { question: "「〜の前に（まえに）」は英語で？", choices: ["before","after","while","when"], correctIndex: 0 },
+  { question: "「〜の後で（あとで）」は英語で？", choices: ["after","before","then","while"], correctIndex: 0 },
+  { question: "「〜の上（うえ）に／〜を超えて（こえて）」は英語で？", choices: ["over","under","above","around"], correctIndex: 0 },
+  { question: "「〜の下（した）に」は英語で？", choices: ["under","over","below","around"], correctIndex: 0 },
+
+  // --- Modals / Ability ---
+  { question: "「〜できる（できる）」は英語で？", choices: ["can","may","must","should"], correctIndex: 0 },
+  { question: "「〜するつもり（よてい）」は英語で？", choices: ["will","can","must","should"], correctIndex: 0 },
   { question: "「〜しなければならない」は英語で？", choices: ["must","can","may","should"], correctIndex: 0 },
   { question: "「〜したほうがいい」は英語で？", choices: ["should","must","can","may"], correctIndex: 0 },
-  { question: "「いつも」は英語で？", choices: ["always","often","usually","sometimes"], correctIndex: 0 },
-  { question: "「よく（頻度）」は英語で？", choices: ["often","always","never","rarely"], correctIndex: 0 },
-  { question: "「たいてい」は英語で？", choices: ["usually","always","often","sometimes"], correctIndex: 0 },
-  { question: "「ときどき」は英語で？", choices: ["sometimes","usually","often","always"], correctIndex: 0 },
-  { question: "「決して〜ない」は英語で？", choices: ["never","always","often","rarely"], correctIndex: 0 },
-  { question: "「今（いま）」は英語で？", choices: ["now","today","soon","then"], correctIndex: 0 },
-  { question: "「今日（きょう）」は英語で？", choices: ["today","now","tonight","this day"], correctIndex: 0 },
-  { question: "「今夜（こんや）」は英語で？", choices: ["tonight","today","now","tomorrow"], correctIndex: 0 },
-  { question: "「明日（あした）」は英語で？", choices: ["tomorrow","today","next day","soon"], correctIndex: 0 },
-  { question: "「昨日（きのう）」は英語で？", choices: ["yesterday","last day","past","before"], correctIndex: 0 },
-];
 
+  // --- Frequency / Time ---
+  { question: "「いつも（いつも）」は英語で？", choices: ["always","often","usually","sometimes"], correctIndex: 0 },
+  { question: "「よく（ひんど）」は英語で？", choices: ["often","usually","always","sometimes"], correctIndex: 0 },
+  { question: "「たいてい（たいてい）」は英語で？", choices: ["usually","often","always","sometimes"], correctIndex: 0 },
+  { question: "「ときどき（ときどき）」は英語で？", choices: ["sometimes","often","usually","always"], correctIndex: 0 },
+  { question: "「決して〜ない（けっして〜ない）」は英語で？", choices: ["never","sometimes","often","always"], correctIndex: 0 },
+
+  { question: "「今（いま）」は英語で？", choices: ["now","today","soon","then"], correctIndex: 0 },
+  { question: "「今日（きょう）」は英語で？", choices: ["today","tomorrow","yesterday","tonight"], correctIndex: 0 },
+  { question: "「今夜（こんや）」は英語で？", choices: ["tonight","today","tomorrow","yesterday"], correctIndex: 0 },
+  { question: "「明日（あした）」は英語で？", choices: ["tomorrow","today","yesterday","tonight"], correctIndex: 0 },
+  { question: "「昨日（きのう）」は英語で？", choices: ["yesterday","today","tomorrow","now"], correctIndex: 0 },
+
+  // --- Articles ---
+  { question: "「冠詞（かんし）『a』は英語で？」", choices: ["a","an","the","to"], correctIndex: 0 },
+  { question: "「冠詞（かんし）『the』は英語で？」", choices: ["the","a","an","this"], correctIndex: 0 },
+
+  // --- Possessives / Objects / Possessive pronouns ---
+  { question: "「『私の（わたしの）』は英語で？」", choices: ["my","me","mine","your"], correctIndex: 0 },
+  { question: "「『あなたの』は英語で？」", choices: ["your","you","yours","our"], correctIndex: 0 },
+  { question: "「『彼の（かれの）』は英語で？」", choices: ["his","him","he","her"], correctIndex: 0 },
+  { question: "「『彼女の（かのじょの）』は英語で？」", choices: ["her","hers","she","his"], correctIndex: 0 },
+  { question: "「『私たちの（わたしたちの）』は英語で？」", choices: ["our","us","we","their"], correctIndex: 0 },
+  { question: "「『彼らの（かれらの）』は英語で？」", choices: ["their","them","they","our"], correctIndex: 0 },
+
+  { question: "「『私を（わたしを）』は英語で？」", choices: ["me","my","I","mine"], correctIndex: 0 },
+  { question: "「『彼を（かれを）』は英語で？」", choices: ["him","his","he","them"], correctIndex: 0 },
+  { question: "「『彼女を（かのじょを）』は英語で？」", choices: ["her","hers","she","him"], correctIndex: 0 },
+  { question: "「『私たちを（わたしたちを）』は英語で？」", choices: ["us","our","we","them"], correctIndex: 0 },
+  { question: "「『彼ら／彼女らを』は英語で？」", choices: ["them","their","they","us"], correctIndex: 0 },
+
+  { question: "「『私のもの（わたしのもの）』は英語で？」", choices: ["mine","my","me","yours"], correctIndex: 0 },
+  { question: "「『あなたのもの』は英語で？」", choices: ["yours","your","you","mine"], correctIndex: 0 },
+  { question: "「『彼女のもの（かのじょのもの）』は英語で？」", choices: ["hers","her","she","his"], correctIndex: 0 },
+  { question: "「『私たちのもの』は英語で？」", choices: ["ours","our","us","theirs"], correctIndex: 0 },
+  { question: "「『彼らのもの』は英語で？」", choices: ["theirs","their","them","ours"], correctIndex: 0 },
+
+  // --- Simple answers / Negation ---
+  { question: "「否定（ひてい）『〜ない』は英語で？」", choices: ["not","no","never","none"], correctIndex: 0 },
+  { question: "「『いいえ』は英語で？」", choices: ["no","not","none","never"], correctIndex: 0 },
+  { question: "「『はい』は英語で？」", choices: ["yes","yeah","ok","sure"], correctIndex: 0 },
+
+  // --- Numbers (useful, minimal) ---
+  { question: "「一つ（ひとつ）」は英語で？", choices: ["one","two","three","four"], correctIndex: 0 },
+  { question: "「二つ（ふたつ）」は英語で？", choices: ["two","one","three","five"], correctIndex: 0 },
+  { question: "「三つ（みっつ）」は英語で？", choices: ["three","two","four","five"], correctIndex: 0 },
+
+  // --- Adjectives (high utility) ---
+  { question: "「良い（よい）」は英語で？", choices: ["good","bad","great","fine"], correctIndex: 0 },
+  { question: "「悪い（わるい）」は英語で？", choices: ["bad","good","sad","wrong"], correctIndex: 0 },
+  { question: "「大きい（おおきい）」は英語で？", choices: ["big","small","tall","large"], correctIndex: 0 },
+  { question: "「小さい（ちいさい）」は英語で？", choices: ["small","big","little","short"], correctIndex: 0 },
+  { question: "「新しい（あたらしい）」は英語で？", choices: ["new","old","young","next"], correctIndex: 0 },
+  { question: "「古い（ふるい）」は英語で？", choices: ["old","new","last","past"], correctIndex: 0 },
+
+  { question: "「うれしい（うれしい）」は英語で？", choices: ["happy","sad","angry","tired"], correctIndex: 0 },
+  { question: "「かなしい（かなしい）」は英語で？", choices: ["sad","happy","glad","funny"], correctIndex: 0 },
+  { question: "「暑い（あつい）」は英語で？", choices: ["hot","cold","warm","cool"], correctIndex: 0 },
+  { question: "「寒い（さむい）」は英語で？", choices: ["cold","hot","cool","warm"], correctIndex: 0 },
+
+  // --- Core nouns (kid-safe, high-frequency) ---
+  { question: "「時間（じかん）」は英語で？", choices: ["time","day","year","hour"], correctIndex: 0 },
+  { question: "「日（ひ）」は英語で？", choices: ["day","time","week","today"], correctIndex: 0 },
+  { question: "「週（しゅう）」は英語で？", choices: ["week","day","month","year"], correctIndex: 0 },
+  { question: "「年（とし）」は英語で？", choices: ["year","month","week","time"], correctIndex: 0 },
+  { question: "「人々（ひとびと）」は英語で？", choices: ["people","person","friends","family"], correctIndex: 0 },
+  { question: "「友だち（ともだち）」は英語で？", choices: ["friend","family","teacher","people"], correctIndex: 0 },
+  { question: "「家族（かぞく）」は英語で？", choices: ["family","friends","parents","people"], correctIndex: 0 },
+  { question: "「家（いえ）」は英語で？", choices: ["home","house","school","room"], correctIndex: 0 },
+  { question: "「学校（がっこう）」は英語で？", choices: ["school","home","class","room"], correctIndex: 0 },
+  { question: "「食べ物（たべもの）」は英語で？", choices: ["food","fruit","meal","drink"], correctIndex: 0 },
+  { question: "「水（みず）」は英語で？", choices: ["water","milk","juice","tea"], correctIndex: 0 },
+
+  // --- Everyday verbs (kid-useful) ---
+  { question: "「〜食べる（たべる）」は英語で？", choices: ["eat","drink","cook","taste"], correctIndex: 0 },
+  { question: "「〜飲む（のむ）」は英語で？", choices: ["drink","eat","sip","taste"], correctIndex: 0 },
+  { question: "「〜遊ぶ（あそぶ）」は英語で？", choices: ["play","work","try","help"], correctIndex: 0 },
+  { question: "「〜読む（よむ）」は英語で？", choices: ["read","write","look","learn"], correctIndex: 0 },
+  { question: "「〜書く（かく）」は英語で？", choices: ["write","read","draw","make"], correctIndex: 0 },
+  { question: "「〜学ぶ（まなぶ）」は英語で？", choices: ["learn","study","know","teach"], correctIndex: 0 },
+  { question: "「〜勉強する（べんきょうする）」は英語で？", choices: ["study","learn","try","work"], correctIndex: 0 },
+
+  // --- Polite core ---
+  { question: "「お願い（おねがい）／お願いします」は英語で？", choices: ["please","sorry","thanks","hello"], correctIndex: 0 },
+  { question: "「ありがとう（ありがとう）」は英語で？", choices: ["thanks","please","sorry","hello"], correctIndex: 0 },
+  { question: "「ごめん（ごめん）」は英語で？", choices: ["sorry","thanks","please","excuse"], correctIndex: 0 },
+
+  // --- “English logic” glue (high value) ---
+  { question: "「〜もう一度（もういちど）」は英語で？", choices: ["again","still","already","soon"], correctIndex: 0 },
+  { question: "「まだ（まだ）」は英語で？", choices: ["still","already","again","yet"], correctIndex: 0 },
+  { question: "「もう（すでに）」は英語で？", choices: ["already","still","again","soon"], correctIndex: 0 },
+  { question: "「それから（それから）」は英語で？", choices: ["then","so","and","after"], correctIndex: 0 },
+  { question: "「また（追加）（また）」は英語で？", choices: ["also","only","even","just"], correctIndex: 0 },
+  { question: "「ただ（ただ）」は英語で？", choices: ["just","only","also","even"], correctIndex: 0 },
+  { question: "「だけ（だけ）」は英語で？", choices: ["only","just","also","even"], correctIndex: 0 },
+  { question: "「さえ（さえ）」は英語で？", choices: ["even","also","only","just"], correctIndex: 0 },
+];
+   
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
