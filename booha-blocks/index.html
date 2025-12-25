@@ -957,6 +957,63 @@ html, body, #game, #ui, #controls, canvas{
    BOOHA BLOCKS: FULL GAME CORE (CLEAN)
    ============================== */
 
+/* ==============================
+   BOOHA BLOCKS: FULL GAME CORE (CLEAN)
+   ============================== */
+
+/* --- Screen flicker helper: call flickerForClearedLines(linesClearedThisDrop) --- */
+(function(){
+  function easeOutQuad(t){ return 1 - (1 - t) * (1 - t); }
+
+  function setRootVar(name, value){
+    document.documentElement.style.setProperty(name, String(value));
+  }
+
+  window.flickerForClearedLines = function(n){
+    if(!n || n <= 0) return;
+    n = Math.min(4, Math.floor(n));
+
+    const peakBase = 0.35 + (n - 1) * 0.33;
+    const pulses = n;
+    const singleDur = 180;
+
+    let pulseIndex = 0;
+
+    function runOnePulse(){
+      const start = performance.now();
+      const peak = peakBase * (1 + pulseIndex * 0.06);
+      const glowPeak = Math.min(1.6, peak * 0.85);
+
+      function step(ts){
+        const elapsed = ts - start;
+        const t = Math.min(1, elapsed / singleDur);
+        const decay = 1 - (1 - (1 - t)) * (1 - (1 - t));
+
+        document.documentElement.style.setProperty('--flash', (peak * decay).toFixed(3));
+        document.documentElement.style.setProperty('--pulse', (glowPeak * decay).toFixed(3));
+        document.documentElement.style.setProperty('--screenGlow', (0.12 + (0.20 * peak) * decay).toFixed(3));
+
+        if(t < 1){
+          requestAnimationFrame(step);
+        } else {
+          pulseIndex++;
+          if(pulseIndex < pulses){
+            setTimeout(runOnePulse, 35);
+          } else {
+            document.documentElement.style.setProperty('--flash','0');
+            document.documentElement.style.setProperty('--pulse','0');
+            document.documentElement.style.setProperty('--screenGlow','0');
+          }
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    runOnePulse();
+  };
+})();
+   
+
 /* ✅ Kill scroll bounce + iOS rubber band */
 document.addEventListener("touchmove", (e)=>{ e.preventDefault(); }, {passive:false});
 document.addEventListener("gesturestart", e => e.preventDefault());
