@@ -917,40 +917,63 @@ html, body, #game, #ui, #controls, canvas{
   }, opts);
 })();
 
-/* ✅ iOS: hard no-zoom shield ONLY inside the game area (prevents late zoom) */
-(function iosNoZoomScoped(){
-  const root = document.querySelector("#game") || document.body;
-  const opts = { passive:false };
+/* ✅ iOS: scoped late-onset zoom killer (safe for games) */
+(function disableDoubleTapZoomScoped(){
+  const root = document.querySelector("#game") || document.documentElement;
+  const opts = { passive: false }; // NO capture
 
   function isFormEl(el){
-    return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT");
+    if(!el) return false;
+    const tag = el.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
   }
 
-  // Block touchstart defaults in the game area (Safari’s late double-tap zoom)
-  root.addEventListener("touchstart", (e) => {
-    if(!e.cancelable) return;
-    if(isFormEl(e.target)) return;      // allow typing / name input
-    e.preventDefault();
-  }, opts);
+  function hasAllowZoomFlag(el){
+    while(el && el !== document.documentElement){
+      if(el.dataset && el.dataset.allowZoom === "true") return true;
+      el = el.parentElement;
+    }
+    return false;
+  }
 
-  // Block multi-touch move in the game area
-  root.addEventListener("touchmove", (e) => {
+  // Block Safari double-tap zoom
+  let lastTouchEnd = 0;
+  root.addEventListener("touchend", function(e){
     if(!e.cancelable) return;
-    if(isFormEl(e.target)) return;
-    if(e.touches && e.touches.length > 1) e.preventDefault();
-  }, opts);
+    const target = e.target;
+    if(isFormEl(target) || hasAllowZoomFlag(target)) return;
 
-  // Block double-tap zoom in the game area
-  let last = 0;
-  root.addEventListener("touchend", (e) => {
-    if(!e.cancelable) return;
-    if(isFormEl(e.target)) return;
     const now = Date.now();
-    if(now - last <= 350) e.preventDefault();
-    last = now;
+    const delta = now - lastTouchEnd;
+
+    if(delta > 0 && delta <= 300){
+      e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, opts);
+
+  // Block pinch zoom inside game
+  root.addEventListener("touchmove", function(e){
+    if(!e.cancelable) return;
+    const target = e.target;
+    if(isFormEl(target) || hasAllowZoomFlag(target)) return;
+
+    if(e.touches && e.touches.length > 1){
+      e.preventDefault();
+    }
+  }, opts);
+
+  // Guard multi-touch start
+  root.addEventListener("touchstart", function(e){
+    if(!e.cancelable) return;
+    const target = e.target;
+    if(isFormEl(target) || hasAllowZoomFlag(target)) return;
+
+    if(e.touches && e.touches.length > 1){
+      e.preventDefault();
+    }
   }, opts);
 })();
-   
 
    
 /* ==============================
