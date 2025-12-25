@@ -929,7 +929,11 @@ function updateHud(){
 let audioUnlocked = false;
 
 const AUDIO_FILES = {
-  bgm: "booha-tetris-january.mp3",
+  bgmTracks: [
+    "booha-tetris-january.mp3",
+    "booha-tetris-january-2.mp3",
+    "booha-tetris-january-3.mp3"
+  ],
   lineClear: "booha-tetris-sound.mp3",
   quizOpen: "quiz.mp3",
   quizCorrect: "clear.mp3",
@@ -937,15 +941,44 @@ const AUDIO_FILES = {
 };
 
 const SFX = {
-  bgm: new Audio(AUDIO_FILES.bgm),
+  bgm: null,          // current BGM Audio instance
+  bgmVol: 0.28,       // keep your same volume
+  bgmIndex: 0,
+  bgmPendingAdvance: false
 };
 
-SFX.bgm.loop = true;
-SFX.bgm.preload = "auto";
-SFX.bgm.volume = 0.28;
+
+function buildBGM(trackIndex){
+  const src = AUDIO_FILES.bgmTracks[trackIndex] || AUDIO_FILES.bgmTracks[0];
+  const a = new Audio(src);
+  a.loop = false;           // rotation handles looping
+  a.preload = "auto";
+  a.volume = SFX.bgmVol;
+
+ a.onended = () => {
+  // If we are not in active play, queue the next track instead of switching now
+  if(!audioUnlocked || !gameStarted || isGameOver || isPaused || isPausedForQuestion){
+    SFX.bgmPendingAdvance = true;
+    return;
+  }
+
+  // Active play: advance immediately
+  SFX.bgmIndex = (SFX.bgmIndex + 1) % AUDIO_FILES.bgmTracks.length;
+  SFX.bgm = buildBGM(SFX.bgmIndex);
+  safePlay(SFX.bgm, { restart:false });
+};
+
+
+  return a;
+}
+
 
 function preloadAllAudio(){
-  try{ SFX.bgm.load(); }catch(_){}
+ try{
+  if(!SFX.bgm) SFX.bgm = buildBGM(SFX.bgmIndex);
+  SFX.bgm.load();
+}catch(_){}
+
   try{ (new Audio(AUDIO_FILES.lineClear)).load(); }catch(_){}
   try{ (new Audio(AUDIO_FILES.quizOpen)).load(); }catch(_){}
   try{ (new Audio(AUDIO_FILES.quizCorrect)).load(); }catch(_){}
@@ -957,20 +990,43 @@ async function unlockAudioOnce(){
   audioUnlocked = true;
   preloadAllAudio();
 
-  const prevVol = SFX.bgm.volume;
-  try{
-    SFX.bgm.volume = 0.0001;
-    const p = SFX.bgm.play();
-    if(p && typeof p.catch === "function") await p.catch(()=>{});
-    try{ SFX.bgm.pause(); }catch(_){}
-    try{ SFX.bgm.currentTime = 0; }catch(_){}
-  }catch(_){}
-  SFX.bgm.volume = prevVol;
-}
+// Ensure we have the first BGM instance ready
+if(!SFX.bgm) SFX.bgm = buildBGM(SFX.bgmIndex);
+
+const prevVol = SFX.bgm.volume;
+try{
+  SFX.bgm.volume = 0.0001;
+  const p = SFX.bgm.play();
+  if(p && typeof p.catch === "function") await p.catch(()=>{});
+  try{ SFX.bgm.pause(); }catch(_){}
+  try{ SFX.bgm.currentTime = 0; }catch(_){}
+}catch(_){}
+SFX.bgm.volume = prevVol;
+   }
+
+
 
 function safePlay(audio, opts={}){
-  if(!audioUnlocked || !audio) return;
+  if(!audioUnlocked) return;
+
   const restart = opts.restart !== false;
+
+  // 🛡️ BGM safety: rebuild if missing or ended
+  if(audio === SFX.bgm){
+    if(!SFX.bgm){
+      SFX.bgm = buildBGM(SFX.bgmIndex);
+      audio = SFX.bgm;
+    }
+    try{
+      if(SFX.bgm.ended){
+        SFX.bgm = buildBGM(SFX.bgmIndex);
+        audio = SFX.bgm;
+      }
+    }catch(_){}
+  }
+
+  if(!audio) return;
+
   try{
     if(restart){
       try{ audio.pause(); audio.currentTime = 0; }catch(_){}
@@ -993,14 +1049,44 @@ function playSFX(url, vol=1){
   }catch(_){}
 }
 
-function pauseBGM(){ try{ SFX.bgm.pause(); }catch(_){ } }
+function pauseBGM(){
+  try{
+    if(SFX.bgm){
+      SFX.bgm.pause();
+      // do not reset currentTime here; we want smooth resume
+    }
+  }catch(_){}
+}
+
 function resumeBGM(){
   if(!audioUnlocked) return;
   if(isGameOver) return;
   if(!gameStarted) return;
   if(isPaused || isPausedForQuestion) return;
-  safePlay(SFX.bgm, {restart:false});
+    // If a track ended during pause/quiz, advance now
+  if(SFX.bgmPendingAdvance){
+    SFX.bgmPendingAdvance = false;
+    SFX.bgmIndex = (SFX.bgmIndex + 1) % AUDIO_FILES.bgmTracks.length;
+    SFX.bgm = buildBGM(SFX.bgmIndex);
+  }
+ 
+
+  // If BGM instance doesn't exist yet (or was cleared), rebuild it
+  if(!SFX.bgm){
+    SFX.bgm = buildBGM(SFX.bgmIndex);
+  }
+
+  // If the track already ended (some browsers report ended after pause/seek), rebuild cleanly
+  try{
+    if(SFX.bgm.ended){
+      SFX.bgm = buildBGM(SFX.bgmIndex);
+    }
+  }catch(_){}
+
+  // Play without forcing a restart (keeps currentTime if paused mid-song)
+  safePlay(SFX.bgm, { restart:false });
 }
+
 
 /* ==============================
    LEVEL THEMES
