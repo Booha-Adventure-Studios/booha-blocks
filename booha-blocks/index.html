@@ -917,68 +917,45 @@ html, body, #game, #ui, #controls, canvas{
   }, opts);
 })();
 
-/* ✅ iOS: scoped late-onset zoom killer (safe for games) */
-(function disableDoubleTapZoomScoped(){
-  const root = document.querySelector("#game") || document.documentElement;
-  const opts = { passive: false }; // NO capture
+/* ✅ iOS: hard-stop zoom by owning touch on control buttons */
+(function iosNoZoomOnControls(){
+  const opt = { passive:false };
+  const SELECTOR = [
+    "#helpBtn", "#trophyBtn", "#pauseBtn",
+    "#moveLeftBtn", "#moveRightBtn", "#moveDownBtn", "#rotateBtn",
+    ".mob-btn"
+  ].join(",");
 
-  function isFormEl(el){
-    if(!el) return false;
-    const tag = el.tagName;
-    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+  function arm(el){
+    el.__synthGuard = 0;
+
+    el.addEventListener("touchstart", (e) => {
+      if(e.cancelable) e.preventDefault();
+    }, opt);
+
+    el.addEventListener("touchend", (e) => {
+      if(e.cancelable) e.preventDefault();
+      el.__synthGuard = Date.now();
+      el.click();
+    }, opt);
+
+    el.addEventListener("click", (e) => {
+      const t = el.__synthGuard || 0;
+      if(t && (Date.now() - t) < 450){
+        el.__synthGuard = 0;
+        return;
+      }
+    }, true);
   }
 
-  function hasAllowZoomFlag(el){
-    while(el && el !== document.documentElement){
-      if(el.dataset && el.dataset.allowZoom === "true") return true;
-      el = el.parentElement;
-    }
-    return false;
+  function init(){
+    document.querySelectorAll(SELECTOR).forEach(arm);
   }
 
-  // Block Safari double-tap zoom
-  let lastTouchEnd = 0;
-  root.addEventListener("touchend", function(e){
-    if(!e.cancelable) return;
-    const target = e.target;
-    if(isFormEl(target) || hasAllowZoomFlag(target)) return;
-
-    const now = Date.now();
-    const delta = now - lastTouchEnd;
-
-    if(delta > 0 && delta <= 300){
-      e.preventDefault();
-    }
-    lastTouchEnd = now;
-  }, opts);
-
-  // Block pinch zoom inside game
-  root.addEventListener("touchmove", function(e){
-    if(!e.cancelable) return;
-    const target = e.target;
-    if(isFormEl(target) || hasAllowZoomFlag(target)) return;
-
-    if(e.touches && e.touches.length > 1){
-      e.preventDefault();
-    }
-  }, opts);
-
-  // Guard multi-touch start
-  root.addEventListener("touchstart", function(e){
-    if(!e.cancelable) return;
-    const target = e.target;
-    if(isFormEl(target) || hasAllowZoomFlag(target)) return;
-
-    if(e.touches && e.touches.length > 1){
-      e.preventDefault();
-    }
-  }, opts);
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
 
-   
-/* ==============================
-   BOOHA BLOCKS: FULL GAME CORE (CLEAN)
-   ============================== */
 
 /* ==============================
    BOOHA BLOCKS: FULL GAME CORE (CLEAN)
