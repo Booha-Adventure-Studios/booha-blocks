@@ -2534,7 +2534,7 @@ async function startGame(){
 }
 
 /* ------------------------------
-   Start-from-overlay countdown
+   Start-from-overlay countdown (FINAL, iPad-safe)
 --------------------------------*/
 function startFromOverlay(){
   if(gameStarted) return;
@@ -2544,6 +2544,7 @@ function startFromOverlay(){
 
   const timer = setInterval(()=>{
     count--;
+
     if(count > 0){
       if(startInner) startInner.innerHTML = `<span class="big">${count}</span>`;
     }else{
@@ -2551,21 +2552,39 @@ function startFromOverlay(){
       if(startInner) startInner.innerHTML = `<span class="big">GO!</span>`;
 
       setTimeout(async ()=>{
-       if(startOverlay){
-  startOverlay.style.display = "none";
-  startOverlay.style.pointerEvents = "none";
-}
+        if(startOverlay){
+          startOverlay.style.display = "none";
+          startOverlay.style.pointerEvents = "none";
+        }
 
-// ✅ re-enable game input after overlay disappears
-const shellEl = document.querySelector(".shell");
-if(shellEl) shellEl.style.pointerEvents = "auto";
-if(canvas)  canvas.style.pointerEvents = "auto";
+        // re-enable game input
+        const shellEl = document.querySelector(".shell");
+        if(shellEl) shellEl.style.pointerEvents = "auto";
+        if(canvas)  canvas.style.pointerEvents = "auto";
 
         await startGame();
       }, 350);
     }
   }, 650);
 }
+
+/* ---------- start overlay input (NO load handler, NO globals) ---------- */
+function onStartOverlayTap(e){
+  e.preventDefault();
+  e.stopPropagation();
+  startFromOverlay();
+}
+
+if(startOverlay){
+  startOverlay.addEventListener("touchstart", onStartOverlayTap, { passive:false });
+  startOverlay.addEventListener("pointerdown", onStartOverlayTap, { passive:false });
+}
+
+/* Optional external triggers */
+window.booha = window.booha || {};
+window.booha.startFromOverlay = startFromOverlay;
+window.booha.triggerGameOver  = triggerGameOver;
+window.addEventListener("booha:start", startFromOverlay);
 
 /* Optional: allow other scripts to trigger start via event */
 window.booha = window.booha || {};
