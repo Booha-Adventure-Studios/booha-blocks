@@ -2283,15 +2283,14 @@ if(trophyBtn){
   };
 }
 
-<!-- ==============================
-     GAME OVER + START OVERLAY (FIXED)
-     - No duplicate start triggers
-     - Overlay tap runs startGame() only
-     - iPad zoom-fix stays, but does NOT call resumeLoop directly
-     - Proper </script> placement (no <script> inside JS)
-     ============================== -->
+/* ==============================
+   GAME OVER + START OVERLAY (FIXED)
+   - No duplicate start triggers
+   - Overlay tap runs startGame() only
+   - iPad zoom-fix stays, but does NOT call resumeLoop directly
+   - No <script> tags inside JS
+   ============================== */
 
-<script>
 /* ==============================
    GAME OVER
    ============================== */
@@ -2357,7 +2356,6 @@ async function startGame(){
   if(gameStarted) return;
 
   await unlockAudioOnce();
-
   hardReset();
 
   gameStarted = true;
@@ -2370,6 +2368,16 @@ async function startGame(){
   tickGlow();
   updateHud();
 
+  // ✅ if your loop doesn't already auto-run elsewhere, start it here:
+  // resumeLoop();  // (only keep this if your game uses resumeLoop to start)
+}
+
+/* ==============================
+   Start-from-overlay countdown (optional)
+   ============================== */
+function startFromOverlay(){
+  if(gameStarted) return;
+
   let count = 3;
   startInner.innerHTML = `<span class="big">${count}</span>`;
 
@@ -2381,16 +2389,23 @@ async function startGame(){
       clearInterval(timer);
       startInner.innerHTML = `<span class="big">GO!</span>`;
 
-      // ✅ IMPORTANT:
-      // Let the game start itself (startGame already sets gameStarted).
-      // We hide the overlay here and then resume the loop exactly once.
-      setTimeout(()=>{
+      setTimeout(async ()=>{
+        // overlay hide
         startOverlay.style.display = "none";
-        resumeLoop();
+
+        // ✅ start game exactly once
+        await startGame();
       }, 500);
     }
   }, 700);
 }
+
+/* helper */
+window.booha = window.booha || {};
+window.booha.startFromOverlay = startFromOverlay;
+
+// ✅ overlay script dispatches booha:start; startFromOverlay handles countdown then startGame
+window.addEventListener('booha:start', startFromOverlay);
 
 /* ==============================
    INIT
