@@ -1198,22 +1198,21 @@ function triggerTetrisClearAnimation() {
    GAME CODE STARTS HERE
    =============================== */
 
-
-/* canvas (MUST come first) */
+/* canvas MUST be first */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const grid = 32;
 
-/* ✅ Kill scroll bounce ONLY where needed */
+/* bounce/zoom guards AFTER canvas exists */
 function preventTouchMove(el){
   if(!el) return;
   el.addEventListener("touchmove", (e)=>{ e.preventDefault(); }, { passive:false });
 }
-
 preventTouchMove(canvas);
 preventTouchMove(document.getElementById("startOverlay"));
 preventTouchMove(document.getElementById("questionOverlay"));
 preventTouchMove(document.querySelector(".shell"));
+
 
 /* iOS pinch/double-tap zoom guard */
 document.addEventListener("gesturestart", (e)=> e.preventDefault(), { passive:false });
@@ -1678,10 +1677,7 @@ function commitLineClear(){
     triggerTetrisClearAnimation();
   }
 
-  // remove cleared rows
   rowsToClear.forEach(r => { playfield.splice(r, 1); });
-
-  // add new empty rows on top
   for(let i=0;i<cleared;i++){
     playfield.unshift(Array(10).fill(0));
   }
@@ -1775,11 +1771,10 @@ function loop(){
 }
 
 function resumeLoop(){
-  if(isGameOver || isPaused || isPausedForQuestion || !gameStarted) return;
-  if(rafId) cancelAnimationFrame(rafId);
+  console.log("resumeLoop called");
   rafId = requestAnimationFrame(loop);
-  resumeBGM();
 }
+
 
 /* desktop keys */
 document.addEventListener("keydown", (e)=>{
@@ -2365,17 +2360,27 @@ if(trophyBtn){
    GAME OVER + START OVERLAY (WORKING)
    ============================== */
 
-const startOverlay = document.getElementById("startOverlay");
-const startInner   = document.getElementById("startOverlayInner");
+let startOverlay = null;
+let startInner   = null;
 
-/* ✅ ONE tap-to-start handler */
-if(startOverlay){
+window.addEventListener("DOMContentLoaded", ()=>{
+  startOverlay = document.getElementById("startOverlay");
+  startInner   = document.getElementById("startOverlayInner");
+
+  if(!startOverlay){
+    console.error("❌ startOverlay not found");
+    return;
+  }
+
   startOverlay.addEventListener("pointerdown", (e)=>{
     e.preventDefault();
     e.stopPropagation();
     startFromOverlay();
   }, { passive:false });
-}
+
+  console.log("✅ startOverlay handler attached");
+});
+
 
 /* ------------------------------
    GAME OVER
