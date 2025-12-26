@@ -910,13 +910,6 @@ html, body {
   touch-action: none;          /* canvas only */
 }
 
-.mob-btn,
-#pauseBtn,
-#helpBtn,
-#trophyBtn,
-#startOverlay {
-  touch-action: manipulation; /* allow taps, block zoom */
-}
 
 /* iOS Smart Zoom killer — text only */
 .shell,
@@ -926,6 +919,29 @@ html, body {
   -webkit-touch-callout: none;
   touch-action: manipulation;
 }
+
+/* 🔒 iOS: stop focus zoom on game buttons */
+.mob-btn,
+#pauseBtn,
+#helpBtn,
+#trophyBtn {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+
+  touch-action: none;              /* IMPORTANT */
+  outline: none;
+}
+
+/* Make sure nothing inside buttons can trigger focus */
+.mob-btn *,
+#pauseBtn *,
+#helpBtn *,
+#trophyBtn * {
+  pointer-events: none;
+}
+    
 </style>
 </head>
 <body>
