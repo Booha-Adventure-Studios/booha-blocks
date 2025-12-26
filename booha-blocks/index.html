@@ -866,9 +866,18 @@ body, .shell, canvas, #startOverlay, #questionOverlay,
 }
 
      
-  </style>
+  /* ✅ FIX: start overlay must receive the tap */
+  #startOverlay{
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
+  }
+  #startOverlayInner{ pointer-events: none !important; }
+</style>
 </head>
 <body>
+
 
 
   <!-- ✅ ONE LEADERBOARD OVERLAY (LOCAL) -->
@@ -2396,13 +2405,23 @@ function triggerGameOver(){
   saveLocalScore?.();
   openLeaderboard?.();
 
-  if(startOverlay) startOverlay.style.display = "flex";
+  if(startOverlay){
+    startOverlay.style.display = "flex";
+    startOverlay.style.pointerEvents = "auto";   // ✅ overlay can receive taps
+  }
+
   if(startInner){
     startInner.innerHTML = `<span class="big">GAME OVER</span><br>タップしてリスタート`;
   }
 
+  // block game input while overlay is up
+  const shellEl = document.querySelector(".shell");
+  if(shellEl) shellEl.style.pointerEvents = "none";
+  if(canvas)  canvas.style.pointerEvents = "none";
+
   gameStarted = false;
 }
+
 
 /* ------------------------------
    RESET
@@ -2478,7 +2497,16 @@ function startFromOverlay(){
       if(startInner) startInner.innerHTML = `<span class="big">GO!</span>`;
 
       setTimeout(async ()=>{
-        if(startOverlay) startOverlay.style.display = "none";
+       if(startOverlay){
+  startOverlay.style.display = "none";
+  startOverlay.style.pointerEvents = "none";
+}
+
+// ✅ re-enable game input after overlay disappears
+const shellEl = document.querySelector(".shell");
+if(shellEl) shellEl.style.pointerEvents = "auto";
+if(canvas)  canvas.style.pointerEvents = "auto";
+
         await startGame();
       }, 350);
     }
