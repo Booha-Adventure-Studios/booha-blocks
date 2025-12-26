@@ -1199,22 +1199,31 @@ function triggerTetrisClearAnimation() {
    =============================== */
 
 
-/* ✅ Kill scroll bounce + iOS rubber band (all devices) */
-document.addEventListener("touchmove", (e)=>{ e.preventDefault(); }, {passive:false});
+/* canvas (MUST come first) */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const grid = 32;
+
+/* ✅ Kill scroll bounce ONLY where needed */
+function preventTouchMove(el){
+  if(!el) return;
+  el.addEventListener("touchmove", (e)=>{ e.preventDefault(); }, { passive:false });
+}
+
+preventTouchMove(canvas);
+preventTouchMove(document.getElementById("startOverlay"));
+preventTouchMove(document.getElementById("questionOverlay"));
+preventTouchMove(document.querySelector(".shell"));
 
 /* iOS pinch/double-tap zoom guard */
-document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener("gesturestart", (e)=> e.preventDefault(), { passive:false });
+
 let __lastTouchEnd = 0;
 document.addEventListener("touchend", (e)=>{
   const now = Date.now();
   if(now - __lastTouchEnd <= 300) e.preventDefault();
   __lastTouchEnd = now;
-}, {passive:false});
-
-/* canvas */
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const grid = 32;
+}, { passive:false });
 
 /* ✅ unified flags */
 let gameStarted = false;
@@ -1665,14 +1674,17 @@ function commitLineClear(){
   const rowsToClear = clearingRows.slice().sort((a,b)=>b-a);
   const cleared = rowsToClear.length;
 
-  if (cleared === 4) {
+  if(cleared === 4){
     triggerTetrisClearAnimation();
   }
 
-  rowsToClear.forEach(r=>{ playfield.splice(r, 1); });
-  for(let i=0;i<cleared;i++){ playfield.unshift(Array(10).fill(0)); }
-}
+  // remove cleared rows
+  rowsToClear.forEach(r => { playfield.splice(r, 1); });
 
+  // add new empty rows on top
+  for(let i=0;i<cleared;i++){
+    playfield.unshift(Array(10).fill(0));
+  }
 
   if(cleared){
     linesClearedTotal += cleared;
@@ -1681,7 +1693,7 @@ function commitLineClear(){
     applyLevelThemeAndMaybeSound();
 
     requestAnimationFrame(()=>{
-      setTimeout(()=>{ maybeTriggerQuestion(); }, 180);
+      setTimeout(()=>{ maybeTriggerQuestion?.(); }, 180);
     });
   }
 
@@ -1690,6 +1702,7 @@ function commitLineClear(){
   piece = nextPiece();
   updateHud();
 }
+
 
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
