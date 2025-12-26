@@ -2245,12 +2245,9 @@ if(lbClearBtn){
 }
 
 
-
+<script>
 /* ==============================
    PAUSE / HELP / TROPHY (FIXED)
-   - iOS-safe pointer events (no click reliance)
-   - No accidental double handlers
-   - Clean overlay behavior (stopPropagation)
    ============================== */
 
 const pauseBtn      = document.getElementById("pauseBtn");
@@ -2330,9 +2327,7 @@ if(helpClose){
 }
 
 if(helpOverlay){
-  // Tap anywhere on the dim background to close (optional but nice)
   helpOverlay.addEventListener("pointerdown", (e)=>{
-    // only close if they tapped the overlay background itself
     if(e.target !== helpOverlay) return;
     e.preventDefault();
     e.stopPropagation();
@@ -2354,22 +2349,18 @@ if(trophyBtn){
 
 
 /* ==============================
-   GAME OVER + START OVERLAY (FIXED)
-   - Removes illegal nested <script>
-   - triggerGameOver now closes properly
-   - ONE start handler (pointerdown)
-   - Countdown (3-2-1-GO) -> startGame()
+   GAME OVER + START OVERLAY (WORKING)
    ============================== */
 
 const startOverlay = document.getElementById("startOverlay");
 const startInner   = document.getElementById("startOverlayInner");
 
-/* ✅ ONE tap-to-start handler (iOS-safe) */
+/* ✅ ONE tap-to-start handler */
 if(startOverlay){
   startOverlay.addEventListener("pointerdown", (e)=>{
     e.preventDefault();
     e.stopPropagation();
-    startFromOverlay(); // countdown → startGame()
+    startFromOverlay();
   }, { passive:false });
 }
 
@@ -2382,19 +2373,14 @@ function triggerGameOver(){
 
   pauseBGM?.();
 
-  // ✅ save score w/ name prompt (your existing function)
   saveLocalScore?.();
-
-  // ✅ show leaderboard immediately (your existing function)
   openLeaderboard?.();
 
-  // ✅ show overlay to restart
   if(startOverlay) startOverlay.style.display = "flex";
   if(startInner){
     startInner.innerHTML = `<span class="big">GAME OVER</span><br>タップしてリスタート`;
   }
 
-  // ✅ allow restart
   gameStarted = false;
 }
 
@@ -2402,7 +2388,6 @@ function triggerGameOver(){
    RESET
 --------------------------------*/
 function hardReset(){
-  // reset flags
   isGameOver = false;
   isPaused = false;
   isPausedForQuestion = false;
@@ -2411,22 +2396,18 @@ function hardReset(){
   clearingRows = [];
   clearTicks = 0;
 
-  // reset scoring
   score = 0;
   linesClearedTotal = 0;
   currentQuestionIndex = 0;
   currentLevel = 1;
 
-  // reset timers
   frameCounter = 0;
   gravityFrames = 40;
 
-  // clear field
   for(let r=0;r<20;r++){
     playfield[r].fill(0);
   }
 
-  // new piece
   piece = nextPiece();
 
   updateGravity?.();
@@ -2434,7 +2415,7 @@ function hardReset(){
 }
 
 /* ------------------------------
-   START GAME
+   START GAME (✅ ACTUALLY STARTS)
 --------------------------------*/
 async function startGame(){
   if(gameStarted) return;
@@ -2454,8 +2435,9 @@ async function startGame(){
   tickGlow?.();
   updateHud?.();
 
-  // If your loop needs a kick, do it here ONLY if your loop doesn’t auto-run:
-  // resumeLoop?.();
+  // ✅ THIS WAS THE PROBLEM: you never kicked off requestAnimationFrame(loop)
+  resumeLoop?.();
+  resumeBGM?.();
 }
 
 /* ------------------------------
@@ -2478,37 +2460,23 @@ function startFromOverlay(){
       setTimeout(async ()=>{
         if(startOverlay) startOverlay.style.display = "none";
         await startGame();
-      }, 500);
+      }, 350);
     }
-  }, 700);
+  }, 650);
 }
 
 /* Optional: allow other scripts to trigger start via event */
 window.booha = window.booha || {};
 window.booha.startFromOverlay = startFromOverlay;
+window.booha.triggerGameOver  = triggerGameOver;
 window.addEventListener("booha:start", startFromOverlay);
 
 /* ==============================
    INIT (SAFE FINAL)
    ============================== */
-
-// Ensure gravity + HUD are initialized once on load
 updateGravity?.();
 updateHud?.();
 
-/* ==============================
-   OPTIONAL GLOBAL HOOKS
-   ============================== */
-
-// Allow console / external triggers
-window.booha = window.booha || {};
-window.booha.startFromOverlay = startFromOverlay;
-window.booha.triggerGameOver  = triggerGameOver;
-
-/* ==============================
-   END OF GAME SCRIPT
-   ============================== */
 </script>
-
 </body>
 </html>
