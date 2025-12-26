@@ -2284,8 +2284,10 @@ function setPaused(next){
     pauseBGM?.();
   }else{
     resumeLoop?.();
+    resumeBGM?.();   // ✅ add this (music comes back)
   }
 }
+
 
 if(pauseBtn){
   pauseBtn.addEventListener("pointerdown", (e)=>{
