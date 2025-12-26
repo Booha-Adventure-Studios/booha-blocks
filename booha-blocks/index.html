@@ -2325,6 +2325,15 @@ function triggerGameOver(){
 const startOverlay = document.getElementById("startOverlay");
 const startInner   = document.getElementById("startOverlayInner");
 
+// ✅ Tap-to-start that survives iOS touchend preventDefault
+if(startOverlay){
+  startOverlay.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();
+    startFromOverlay();   // countdown → calls startGame() at GO
+  }, {passive:false});
+}
+   
+
 // ✅ START OVERLAY: use pointerdown (click may be killed by touchend preventDefault)
 (function(){
   const startOverlay = document.getElementById("startOverlay");
