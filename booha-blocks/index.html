@@ -16,7 +16,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Booha Blocks – Practice Deck</title>
+  <title>Booha Blocks – One 5 Zero</title>
 
   <link rel="icon" type="image/png" sizes="32x32" href="BooBlocks.png">
   <link rel="apple-touch-icon" href="BooBlocks.png">
@@ -58,7 +58,7 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* Fallback */
+   /* Fallback */
   *{
     -webkit-tap-highlight-color: transparent;
   }
@@ -66,6 +66,45 @@
   /* RESET */
   *{margin:0;padding:0;box-sizing:border-box;}
 
+  /* ===============================
+     BIGGER TAP HIT AREA (SETUP)
+     =============================== */
+  #moveLeftBtn, #moveRightBtn{
+    position: relative;
+  }
+  #moveLeftBtn::before, #moveRightBtn::before{
+    content:"";
+    position:absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  /* MOBILE: make left/right tap targets bigger without affecting desktop */
+  @media (pointer:coarse) {
+    #moveLeftBtn, #moveRightBtn {
+      width: 72px;
+      height: 72px;
+      font-size: 26px;
+    }
+
+    #moveLeftBtn::before, #moveRightBtn::before {
+      inset: -18px;
+      border-radius: 50%;
+    }
+
+    #rotateBtn { width: 64px; height:64px; font-size:24px; }
+    #moveDownBtn { max-width: 300px; height:48px; }
+
+    .shell {
+      padding-bottom: calc(32px + 96px + env(safe-area-inset-bottom,0px));
+    }
+  }
+
+
+
+     
   html,body{
     height:100%;
     width:100%;
@@ -938,6 +977,130 @@ document.addEventListener('touchstart', function(e){
   }
 }, { passive: true });
 
+
+/* ===== Special animation for a 4-line clear (Tetris) =====
+   Call this when cleared === 4:
+     if (cleared === 4) triggerTetrisClearAnimation();
+*/
+function triggerTetrisClearAnimation() {
+  // Prevent overlapping triggers
+  if (document.body.dataset.tetrisAnim === "1") return;
+  document.body.dataset.tetrisAnim = "1";
+
+  // gentle flash + pulse using CSS custom properties already in use
+  const root = document.documentElement;
+  const cs = getComputedStyle(root);
+  const prevFlash = parseFloat(cs.getPropertyValue('--flash')) || 0;
+  const prevPulse = parseFloat(cs.getPropertyValue('--pulse')) || 0;
+
+  root.style.setProperty('--flash', 1);
+  root.style.setProperty('--pulse', 1);
+  root.style.setProperty('--screenGlow', 1);
+
+  // short-lived audio cue (Safari-safe: new Audio instance per play)
+  try {
+    // If you already have a helper, use it
+    if (typeof playSFX === "function") {
+      // pick whatever your "big win" sound is named
+      // playSFX("quizCorrect");
+      playSFX("levelUp"); // <- change this key if needed
+    } else if (typeof AUDIO_FILES !== "undefined" && AUDIO_FILES.levelUp) {
+      const a = new Audio(AUDIO_FILES.levelUp);
+      a.volume = 0.9;
+      a.play().catch(()=>{});
+    } else if (typeof AUDIO_FILES !== "undefined" && AUDIO_FILES.quizCorrect) {
+      const a = new Audio(AUDIO_FILES.quizCorrect);
+      a.volume = 0.9;
+      a.play().catch(()=>{});
+    } else if (typeof SFX !== "undefined" && SFX && SFX.quizCorrect && typeof SFX.quizCorrect.play === "function") {
+      // fallback if you really do have an Audio instance stored
+      SFX.quizCorrect.currentTime = 0;
+      SFX.quizCorrect.volume = 0.9;
+      SFX.quizCorrect.play().catch(()=>{});
+    }
+  } catch (e) {}
+
+  // Confetti canvas overlay
+  const confCanvas = document.createElement('canvas');
+  confCanvas.style.position = 'fixed';
+  confCanvas.style.inset = '0';
+  confCanvas.style.pointerEvents = 'none';
+  confCanvas.style.zIndex = 9998;
+
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.max(window.innerWidth, 320);
+  const h = Math.max(window.innerHeight, 320);
+
+  confCanvas.width = Math.floor(w * dpr);
+  confCanvas.height = Math.floor(h * dpr);
+  confCanvas.style.width = w + 'px';
+  confCanvas.style.height = h + 'px';
+
+  const cctx = confCanvas.getContext('2d');
+  cctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  document.body.appendChild(confCanvas);
+
+  // generate confetti pieces
+  const pieces = [];
+  const colors = ['#ff7eb9','#7dd3fc','#ffd166','#a78bfa','#f472b6','#60a5fa'];
+  const count = 32;
+
+  for (let i = 0; i < count; i++) {
+    pieces.push({
+      x: Math.random() * w,
+      y: Math.random() * (h * 0.4),
+      vx: (Math.random() - 0.5) * 6,
+      vy: 2 + Math.random() * 6,
+      size: 6 + Math.random() * 10,
+      color: colors[(Math.random() * colors.length) | 0],
+      rot: Math.random() * Math.PI * 2,
+      vrot: (Math.random() - 0.5) * 0.3
+    });
+  }
+
+  const startTime = performance.now();
+  const duration = 1400; // ms
+
+  function frame(now) {
+    const t = now - startTime;
+    cctx.clearRect(0, 0, w, h);
+
+    for (const p of pieces) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.12; // gravity
+      p.rot += p.vrot;
+
+      cctx.save();
+      cctx.translate(p.x, p.y);
+      cctx.rotate(p.rot);
+      cctx.fillStyle = p.color;
+      cctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+      cctx.restore();
+    }
+
+    // fade the flash
+    if (t < duration * 0.7) {
+      root.style.setProperty('--flash', String(1 - (t / (duration * 0.7))));
+    }
+
+    if (t < duration) {
+      requestAnimationFrame(frame);
+    } else {
+      // clean up
+      root.style.setProperty('--flash', String(prevFlash));
+      root.style.setProperty('--pulse', String(prevPulse));
+      root.style.setProperty('--screenGlow', '0');
+      confCanvas.remove();
+      document.body.dataset.tetrisAnim = "0";
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+   
+
 /* ===============================
    GAME CODE STARTS HERE
    =============================== */
@@ -1409,8 +1572,14 @@ function commitLineClear(){
   const rowsToClear = clearingRows.slice().sort((a,b)=>b-a);
   const cleared = rowsToClear.length;
 
+  if (cleared === 4) {
+    triggerTetrisClearAnimation();
+  }
+
   rowsToClear.forEach(r=>{ playfield.splice(r, 1); });
   for(let i=0;i<cleared;i++){ playfield.unshift(Array(10).fill(0)); }
+}
+
 
   if(cleared){
     linesClearedTotal += cleared;
