@@ -21,8 +21,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="BooBlocks.png">
   <link rel="apple-touch-icon" href="BooBlocks.png">
 
- <meta name="viewport"
-  content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+
 
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
 
@@ -148,20 +148,29 @@
     overflow:hidden;
   }
 
-  /* iOS/iPad: STOP tap zoom + selection + callouts */
-  body, .shell, canvas, #startOverlay, #questionOverlay,
-  #mobileControls, #mobileDownRow,
-  .mob-btn, #moveDownBtn, .choiceBtn, .topbar, .topbar *{
-    -webkit-user-select:none;
-    user-select:none;
-    -webkit-touch-callout:none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action:manipulation;
-  }
-  #game{
-    touch-action:none;
-    -ms-touch-action:none;
-  }
+ /* iOS/iPad: STOP tap zoom + selection + callouts */
+body, .shell, canvas, #startOverlay, #questionOverlay,
+#mobileControls, #mobileDownRow,
+.mob-btn, #moveDownBtn, .choiceBtn, .topbar, .topbar *{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action:manipulation;
+}
+
+#game{
+  touch-action:none;
+  -ms-touch-action:none;
+}
+
+/* ensure the start overlay accepts tap/pointer interaction and doesn't trigger browser gestures */
+#startOverlay {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
 
   /* whole-screen bloom */
   body::before{
@@ -2478,6 +2487,55 @@ updateHud();
   // helper
   window.booha = window.booha || {};
   window.booha.startFromOverlay = startFromOverlay;
+})();
+
+<script>
+(function(){
+  const startOverlay = document.getElementById('startOverlay');
+  if (!startOverlay) return;
+
+  let gameStarted = false;
+
+  function hideStartOverlayAndSignal() {
+    if (gameStarted) return;
+    gameStarted = true;
+
+    // hide overlay cleanly
+    startOverlay.style.display = 'none';
+
+    // emit an event so the rest of the game can begin if it listens
+    try {
+      window.dispatchEvent(new CustomEvent('booha:start'));
+    } catch (e) {
+      const ev = document.createEvent('Event');
+      ev.initEvent('booha:start', true, true);
+      window.dispatchEvent(ev);
+    }
+  }
+
+  // pointerdown = fastest response, blocks browser gesture
+  startOverlay.addEventListener('pointerdown', function(e){
+    if (e.preventDefault) e.preventDefault();
+    hideStartOverlayAndSignal();
+  }, { passive: false });
+
+  // fallback click
+  startOverlay.addEventListener('click', hideStartOverlayAndSignal);
+
+  // iOS double-tap zoom prevention
+  let lastTouch = 0;
+  document.addEventListener('touchstart', function(e){
+    const now = Date.now();
+    if (now - lastTouch <= 300) {
+      e.preventDefault();
+    }
+    lastTouch = now;
+  }, { passive: false });
+
+  // iOS pinch zoom prevention
+  window.addEventListener('gesturestart', function(e){
+    if (e.preventDefault) e.preventDefault();
+  }, false);
 })();
 </script>
 </body>
