@@ -297,28 +297,36 @@
   .topbar .titleSlot{ justify-self:center; text-align:center; }
   .topbar .rightSlot{ justify-self:end; display:flex; gap:8px; }
 
-  /* TITLE */
-  h1{
-    margin:0;
-    font-family:'Cinzel',serif;
-    font-weight:900;
-    letter-spacing:0.12em;
-    font-size:1.05rem;
-    text-transform:uppercase;
-    text-align:center;
-    color:#e5e7eb;
-    text-shadow:
-      0 0 8px rgba(248,250,252,0.9),
-      0 0 16px rgba(251,113,133,0.8);
-  }
-  h1 span{
-    display:block;
-    font-size:0.8rem;
-    letter-spacing:0.28em;
-    color:#a5b4fc;
-    text-shadow:none;
-    margin-top:2px;
-  }
+/* TITLE */
+#gameTitle{
+  margin:0;
+  text-align:center;
+  color:#e5e7eb;
+}
+
+.gameTitleMain{
+  font-family:'Cinzel',serif;
+  font-weight:900;
+  letter-spacing:0.12em;
+  font-size:1.05rem;
+  text-transform:uppercase;
+  text-shadow:
+    0 0 8px rgba(248,250,252,0.9),
+    0 0 16px rgba(251,113,133,0.8);
+  line-height:1.1;
+}
+
+.gameTitleSub{
+  display:block;
+  font-size:0.8rem;
+  letter-spacing:0.28em;
+  color:#a5b4fc;
+  text-shadow:none;
+  margin-top:2px;
+  font-family:'Cinzel',serif;
+  font-weight:700;
+}
+
 
   /* TOP BUTTONS */
   #helpBtn,#trophyBtn,#pauseBtn{
@@ -546,20 +554,35 @@
     color:#fff;
   }
 
-  .lbTop{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    margin-bottom:12px;
-  }
+.lbTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
 
-  .lbTitle{
-    font-family:"Cinzel", serif;
-    font-weight:900;
-    letter-spacing:.8px;
-    font-size:20px;
-  }
+.lbTitle{
+  font-family:"Cinzel", serif;
+  font-weight:900;
+  letter-spacing:.8px;
+  font-size:20px;
+}
+
+/* ⬇️ ADD THIS RIGHT HERE */
+.lbNote{
+  font-size:13px;
+  line-height:1.5;
+  margin:6px 0 14px;
+  color:#334155;
+  text-align:center;
+}
+
+.lbSoft{
+  color:#64748b;
+  font-size:12px;
+}
+
 
   .lbClose{
     font:inherit;
@@ -779,55 +802,110 @@
     z-index:1;
   }
 
-  /* START OVERLAY */
-  #startOverlay{
-    position:fixed;inset:0;
-    background:rgba(0,0,10,0.85);
-    display:flex;align-items:center;justify-content:center;
-    z-index:60;text-align:center;
-  }
-  #startOverlayInner{
-    padding:20px 18px;
-    border-radius:18px;
-    border:1px solid rgba(255,255,255,0.3);
-    background:radial-gradient(circle,#111827,#020617 60%);
-    box-shadow:0 0 30px rgba(59,130,246,0.8);
-    font-size:0.95rem;
-  }
-  #startOverlayInner .big{
-    display:block;
-    font-size:1.6rem;
-    margin-bottom:6px;
-  }
+ /* START OVERLAY */
+#startOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,10,0.85);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:60;
+  text-align:center;
+}
+
+#startOverlayInner{
+  padding:20px 18px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,0.3);
+  background:radial-gradient(circle,#111827,#020617 60%);
+  box-shadow:0 0 30px rgba(59,130,246,0.8);
+  font-size:0.95rem;
+}
+
+/* START OVERLAY TEXT (Booha style) */
+.startTitle{
+  font-family:"Cinzel", serif;
+  font-weight:900;
+  font-size:1.2rem;
+  line-height:1.25;
+  margin-bottom:10px;
+}
+
+.startTitle .booha{
+  display:inline-block;
+  font-size:1.4rem;
+  letter-spacing:1px;
+}
+
+.startHint{
+  font-size:0.95rem;
+  font-weight:700;
+  margin:8px 0 10px;
+  opacity:0.9;
+}
+
+.startDesc{
+  font-size:0.8rem;
+  line-height:1.5;
+  opacity:0.85;
+}
+
+     
   </style>
 </head>
 <body>
 
 
   <!-- ✅ ONE LEADERBOARD OVERLAY (LOCAL) -->
-  <div id="leaderboardOverlay">
-    <div id="leaderboardCard">
-      <div class="lbTop">
-        <div class="lbTitle">LEADERBOARD</div>
-        <button id="leaderClose" class="lbClose" type="button">CLOSE</button>
-      </div>
+<div id="leaderboardOverlay">
+  <div id="leaderboardCard">
 
-      <div id="leaderList" class="lbList"></div>
-
-      <button id="lbClearBtn" class="lbClear" type="button">CLEAR SCORES</button>
+    <div class="lbTop">
+      <div class="lbTitle">🏆 スコアボード</div>
+      <button id="leaderClose" class="lbClose" type="button">とじる</button>
     </div>
-  </div>
 
-  <!-- Tap-to-start -->
-  <div id="startOverlay">
-    <div id="startOverlayInner">
-      <span class="big">画面をタップしてスタート</span>
-      ブロックを動かしてラインを消そう！<br>
-      ５ラインごとにブーハクイズが出てくるよ。
+    <!-- friendly explanation -->
+    <div class="lbNote">
+      ゲームをクリアしました！<br>
+      スコアはこの端末にローカル保存され、<br>
+      <span class="lbSoft">あなたにだけ表示されます。</span>
     </div>
-  </div>
 
-  <div class="shell">
+    <div id="leaderList" class="lbList"></div>
+
+    <button id="lbClearBtn" class="lbClear" type="button">
+      スコアをリセット
+    </button>
+
+  </div>
+</div>
+
+
+<!-- Tap-to-start -->
+<div id="startOverlay">
+  <div id="startOverlayInner">
+
+    <div class="startTitle">
+      Welcome to<br>
+      <span class="booha">ブーハー Blocks 1·5·0</span>
+    </div>
+
+    <div class="startHint">
+      画面をタップしてスタート
+    </div>
+
+    <div class="startDesc">
+      ブロックを動かしてラインを消そう。<br>
+      ５ラインごとに<br>
+      ブーハークイズが出てくるよ。
+    </div>
+
+  </div>
+</div>
+
+<div class="shell">
 
     <!-- ✅ TOP BAR -->
     <div class="topbar">
@@ -836,11 +914,12 @@
       </div>
 
       <div class="titleSlot">
-        <h1>
-          BOOHA BLOCKS
-          <span>ブーハー・ブロックス</span>
-        </h1>
-      </div>
+  <div id="gameTitle">
+    <div class="gameTitleMain">Booha Blocks</div>
+    <div class="gameTitleSub">One 5 Zero</div>
+  </div>
+</div>
+
 
       <div class="rightSlot">
         <div id="trophyBtn">🏆</div>
