@@ -1265,15 +1265,6 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const grid = 32;
 
-/* bounce/zoom guards AFTER canvas exists */
-function preventTouchMove(el){
-  if(!el) return;
-  el.addEventListener("touchmove", (e)=>{ e.preventDefault(); }, { passive:false });
-}
-preventTouchMove(canvas);
-preventTouchMove(document.getElementById("startOverlay"));
-preventTouchMove(document.getElementById("questionOverlay"));
-preventTouchMove(document.querySelector(".shell"));
 
 /* iOS pinch/double-tap zoom guard */
 document.addEventListener("gesturestart", (e)=> e.preventDefault(), { passive:false });
@@ -1916,8 +1907,6 @@ function bindHoldRepeat(btn, stepFn, DAS=110, ARR=45){
   btn.addEventListener("pointerup", stop, {passive:true});
   btn.addEventListener("pointercancel", stop, {passive:true});
   btn.addEventListener("pointerleave", stop, {passive:true});
-  btn.addEventListener("touchend", stop, {passive:true});
-  btn.addEventListener("touchcancel", stop, {passive:true});
 }
 
 function bindTapOnly(btn, fn){
