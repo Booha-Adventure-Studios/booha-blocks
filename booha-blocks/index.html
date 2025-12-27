@@ -979,7 +979,8 @@ html, body, .shell{
   -webkit-touch-callout:none;
 }
 </style>
-
+   
+</body>
 
   <!-- ✅ ONE LEADERBOARD OVERLAY (LOCAL) -->
 <div id="leaderboardOverlay">
@@ -987,7 +988,7 @@ html, body, .shell{
 
     <div class="lbTop">
       <div class="lbTitle">🏆 スコアボード</div>
-      <button id="leaderClose" class="lbClose" type="button">とじる</button>
+    <button id="lbClose" class="lbClose" type="button">とじる</button>
     </div>
 
     <!-- friendly explanation -->
@@ -1031,23 +1032,23 @@ html, body, .shell{
 
 <div class="shell">
 
-    <!-- ✅ TOP BAR -->
-    <div class="topbar">
-      <div class="leftSlot">
-        <button id="helpBtn" type="button" aria-label="Help">？</button>
-      </div>
-
-      <div class="titleSlot">
-  <div id="gameTitle">
-    <div class="gameTitleMain">Booha Blocks</div>
-    <div class="gameTitleSub">One 5 Zero</div>
+   <!-- ✅ TOP BAR -->
+<div class="topbar">
+  <div class="leftSlot">
+    <button id="helpBtn" type="button" aria-label="Help">？</button>
   </div>
-</div>
 
+  <div class="titleSlot">
+    <div id="gameTitle">
+      <div class="gameTitleMain">Booha Blocks</div>
+      <div class="gameTitleSub">One 5 Zero</div>
+    </div>
+  </div>
 
-     <div class="rightSlot">
-  <button id="trophyBtn" type="button" aria-label="Leaderboard">🏆</button>
-  <button id="pauseBtn" type="button" aria-label="Pause">⏸</button>
+  <div class="rightSlot">
+    <button id="trophyBtn" type="button" aria-label="Leaderboard">🏆</button>
+    <button id="pauseBtn" type="button" aria-label="Pause">⏸</button>
+  </div>
 </div>
 
 
@@ -2730,10 +2731,10 @@ window.addEventListener("load", ()=>{
   }, { passive:false });
 });
    
-
-/* ==============================
-   INIT (SAFE FINAL)
-   ============================== */
+</script>
+   
+/* INIT (SAFE FINAL)*/
+   
 updateGravity?.();
 updateHud?.();
 
