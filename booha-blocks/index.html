@@ -1072,6 +1072,21 @@ html, body {
 }
 
 
+/* ==============================
+   iPhone Safari — Canvas Center Fix (SAFE)
+   ============================== */
+
+#gameWrap{
+  width: 100%;
+  text-align: center;   /* centers inline content without changing layout */
+}
+
+#game{
+  display: block;       /* avoids baseline/inline quirks */
+  margin: 0 auto;       /* centers the 320px canvas */
+}
+
+     
      
 </style>
    
