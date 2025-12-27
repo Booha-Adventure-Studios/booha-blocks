@@ -972,6 +972,22 @@ html, body, .shell{
   font-weight:700;
 }
 
+/* STEP: force arrows/icons inside buttons to render */
+.mob-btn *,
+.choiceBtn *,
+#moveDownBtn *,
+#pauseBtn *,
+#helpBtn *,
+#trophyBtn *,
+.lbClose *,
+.lbClear *,
+#helpClose *,
+.mob-btn::before,
+.mob-btn::after{
+  color:#000;
+  -webkit-text-fill-color:#000;
+  opacity:1;
+}
      
 /* Optional: visible focus for keyboard users */
 .mob-btn:focus-visible,
