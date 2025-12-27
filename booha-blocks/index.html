@@ -1034,23 +1034,30 @@ html, body {
   -webkit-touch-callout: none;
 }
 
-/* STEP: FORCE mob button labels to show (override hammer) */
+/* STEP: center the data-label icons inside each mob button */
 .mob-btn{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .mob-btn::before{
   content: attr(data-label) !important;
-  display:block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   color:#000 !important;
   -webkit-text-fill-color:#000 !important;
   font-weight:900 !important;
   font-size:22px !important;
   line-height:1 !important;
   opacity:1 !important;
+  pointer-events: none !important;
 }
+
      
 </style>
    
