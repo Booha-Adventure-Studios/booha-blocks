@@ -958,6 +958,17 @@ html, body, .shell{
   outline:none;
 }
 
+/* STEP: render arrow labels from data-label */
+.mob-btn::before{
+  content: attr(data-label);
+  display: block;
+  color: #000;
+  -webkit-text-fill-color:#000;
+  font-weight: 900;
+  font-size: 22px;
+  line-height: 1;
+}
+
 /* Restore button icon / arrow visibility */
 .mob-btn,
 .choiceBtn,
@@ -988,7 +999,7 @@ html, body, .shell{
   -webkit-text-fill-color:#000;
   opacity:1;
 }
-     
+
 /* Optional: visible focus for keyboard users */
 .mob-btn:focus-visible,
 .choiceBtn:focus-visible,
@@ -1002,6 +1013,7 @@ html, body, .shell{
   outline:2px solid rgba(255,209,102,.85);
   outline-offset:2px;
 }
+
 
 /* Text should never trigger selection/callouts */
 .shell *{
