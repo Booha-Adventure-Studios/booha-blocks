@@ -111,9 +111,40 @@
     }
 
     .footer{
-      margin-top:18px;
+      margin-top:20px;
       font-size:.7rem;
-      opacity:.75;
+      line-height:1.65;
+      opacity:.78;
+    }
+
+    .footer .line{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      margin-top:10px;
+      opacity:.9;
+    }
+
+    .footer .pip{
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:rgba(255,255,255,0.55);
+      box-shadow:0 0 10px rgba(255,255,255,0.35);
+    }
+
+    .footer .tag{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,209,102,0.45);
+      background:rgba(2,6,23,0.35);
+      box-shadow:0 0 12px rgba(255,255,255,0.12);
+      letter-spacing:.12em;
+      font-family:'Cinzel',serif;
+      font-weight:900;
+      font-size:.66rem;
     }
   </style>
 </head>
@@ -121,28 +152,28 @@
 
   <div class="wrap">
     <h1>BOOHA ARCADE</h1>
-    <div class="sub">スタンドアロン英語ゲーム集</div>
+    <div class="sub">ブーハー・ブロックス専用アーケード</div>
 
     <div class="game-list">
-      <!-- Booha Blocks -->
-      <a class="game-link" href="./booha-blocks/">
-        BOOHA BLOCKS
-        <span>ブロックで学ぶ英語</span>
+      <!-- Booha Blocks — One 5 Zero -->
+      <a class="game-link" href="./booha-blocks-one5zero/">
+        BOOHA BLOCKS · ONE 5 ZERO
+        <span>150語で生き残れ</span>
       </a>
-
-      <!-- Future games go here -->
-      <!--
-      <a class="game-link" href="./g2-pick-the-sentence/">
-        PICK THE SENTENCE
-        <span>文をえらぼう</span>
-      </a>
-      -->
     </div>
 
     <div class="footer">
-      Booha Adventure Arcade · internal build
+      今年、さらに多くのBooha Blocksが登場予定。<br>
+      More Booha Blocks games are coming this year.
+
+      <div class="line">
+        <span class="pip"></span>
+        <span class="tag">BOOHA ADVENTURE</span>
+        <span class="pip"></span>
+      </div>
     </div>
   </div>
+
 
 </body>
 </html>
