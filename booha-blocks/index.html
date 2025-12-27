@@ -1257,6 +1257,8 @@ window.__booha_allowZoomFor = function(ms=1000){
   document.documentElement.dataset.allowZoom = "true";
   setTimeout(()=>{ delete document.documentElement.dataset.allowZoom; }, ms);
 };
+   
+})(); 
 
 /* ===== Special animation for a 4-line clear (Tetris) =====
    Call this when cleared === 4:
