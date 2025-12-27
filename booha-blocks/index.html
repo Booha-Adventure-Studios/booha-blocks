@@ -2723,15 +2723,21 @@ window.addEventListener("load", ()=>{
   }
   console.log("startOverlay FOUND — attaching handler");
 
-  so.addEventListener("pointerdown", (e)=>{
+  const so = document.getElementById("startOverlay");
+
+if (so) {
+  so.addEventListener("pointerdown", (e) => {
     console.log("OVERLAY TAP");
     e.preventDefault();
     e.stopPropagation();
     startFromOverlay();
-  }, { passive:false });
-   
+  }, { passive: false });
+}
+
 updateGravity();
 updateHud();
+draw();
+
 
 
 </script>
