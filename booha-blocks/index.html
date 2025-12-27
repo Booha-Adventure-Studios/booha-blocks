@@ -979,6 +979,19 @@ html, body, .shell{
   user-select:none;
   -webkit-touch-callout:none;
 }
+
+html, body {
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+     
 </style>
    
 </body>
@@ -1255,6 +1268,43 @@ window.__booha_allowZoomFor = function(ms=1000){
   setTimeout(()=>{ delete document.documentElement.dataset.allowZoom; }, ms);
 };
 
+// ✅ Kill Safari smart zoom + dblclick zoom
+document.addEventListener("dblclick", (e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+}, { passive:false, capture:true });
+
+// ✅ Kill ALL pinch gestures
+document.addEventListener("gesturestart", e => e.preventDefault(), { passive:false, capture:true });
+document.addEventListener("gesturechange", e => e.preventDefault(), { passive:false, capture:true });
+document.addEventListener("gestureend", e => e.preventDefault(), { passive:false, capture:true });
+
+// ✅ Aggressive double-tap suppression
+let __lt = 0;
+
+document.addEventListener("touchstart", (e)=>{
+  if(e.touches && e.touches.length > 1){
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
+  const now = Date.now();
+  if(now - __lt < 350){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}, { passive:false, capture:true });
+
+document.addEventListener("touchend", (e)=>{
+  const now = Date.now();
+  if(now - __lt < 350){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  __lt = now;
+}, { passive:false, capture:true });
+
+   
 })();  // ✅ end of the zoom IIFE
 
 
