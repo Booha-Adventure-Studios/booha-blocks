@@ -50,7 +50,6 @@
       margin-top:4px;
     }
 
-    /* Orbitron retro title */
     .title-wrap{
       position:relative;
       display:inline-block;
@@ -134,7 +133,6 @@
       z-index:-1;
     }
 
-    /* Button */
     .game-link.one5zero{
       display:block;
       text-decoration:none;
@@ -254,16 +252,10 @@
     <div class="bottom">Bryan's English School</div>
   </div>
 
-  <!-- SFX (5 seconds) -->
+  <!-- (kept, but not required) -->
   <audio id="indexSfx" preload="auto" src="index.mp3"></audio>
 
-  <!-- ==============================
-       BOOHA TOKEN GATE (REQUIRED)
-       - Verifies ?token= OR sessionStorage boohaToken
-       - Redirects to Booha Gate on missing/invalid/expired/kicked
-       - Appends token to all internal links
-       ============================== -->
- <script>
+  <script>
     (async function () {
       const API_BASE = 'https://www.bryanharper.tokyo';
       const GATE_URL = 'https://www.bryanharper.tokyo/booha-gate';
@@ -296,7 +288,6 @@
       const params = new URLSearchParams(window.location.search);
       let token = params.get('token');
 
-      // fallback: reuse token from Adventure if present
       if (!token) {
         try { token = sessionStorage.getItem('boohaToken'); } catch {}
       }
@@ -325,10 +316,8 @@
           return;
         }
 
-        // ✅ token is valid — store for this browser session
         try { sessionStorage.setItem('boohaToken', token); } catch {}
 
-        // ✅ append token to all internal links (including data-href buttons)
         document.querySelectorAll('a').forEach(a => {
           const raw = a.dataset.href || a.getAttribute('href');
           if (!raw) return;
@@ -349,83 +338,62 @@
       }
     })();
   </script>
-  <!-- ==============================
-       END BOOHA TOKEN GATE
-       ============================== -->
 
-  <!-- ==============================
-       BUTTON SFX + DELAYED NAV (5s)
-       - Glows + plays index.mp3
-       - Opens data-href AFTER 5s
-       ============================== -->
+  <!-- ✅ FIXED: play SFX immediately, then open in exactly 4 seconds -->
   <script>
-  (function(){
-    const btn = document.getElementById("one5zeroBtn");
-    if(!btn) return;
+    (function(){
+      const btn = document.getElementById("one5zeroBtn");
+      if(!btn) return;
 
-    const MIN_DELAY_MS = 4000; // ✅ wait at least 4 seconds
-    let locked = false;
+      const OPEN_DELAY_MS = 4000; // ✅ exactly 4 sec
+      let locked = false;
+      let openTimer = null;
 
-    function handleGo(e){
-      e.preventDefault();
-      e.stopPropagation();
-      if(locked) return;
-      locked = true;
+      function playIndexSfx(){
+        try{
+          // Fresh instance prevents Safari silent lockups
+          const a = new Audio("index.mp3");
+          a.currentTime = 0;
+          a.play().catch(()=>{});
+        }catch(e){}
+      }
 
-      const href = btn.dataset.href || "./booha-blocks/";
+      function handleGo(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if(locked) return;
+        locked = true;
 
-      btn.classList.add("pulse");
+        const href = btn.dataset.href || "./booha-blocks/";
 
-      let minDone = false;
-      let audioDone = false;
-      let navigated = false;
+        btn.classList.add("pulse");
+        playIndexSfx();
 
-      const goIfReady = ()=>{
-        if(navigated) return;
-        if(minDone && audioDone){
-          navigated = true;
+        // hard schedule: open exactly 4 seconds later
+        openTimer = setTimeout(()=>{
           window.location.href = href;
+        }, OPEN_DELAY_MS);
+      }
+
+      btn.addEventListener("pointerdown", handleGo, { passive:false });
+
+      btn.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter" || e.key === " "){
+          handleGo(e);
         }
-      };
+      });
 
-      // ✅ start minimum delay timer
-      setTimeout(()=>{
-        minDone = true;
-        goIfReady();
-      }, MIN_DELAY_MS);
-
-      // ✅ play SFX (fresh instance = Safari-safe)
-      try{
-        const a = new Audio("index.mp3");
-        a.addEventListener("ended", ()=>{
-          audioDone = true;
-          goIfReady();
-        }, { once:true });
-
-        a.play().catch(()=>{
-          // if autoplay blocks, don't hang forever
-          audioDone = true;
-          goIfReady();
-        });
-      }catch(err){
-        audioDone = true;
-        goIfReady();
-      }
-    }
-
-    btn.addEventListener("pointerdown", handleGo, { passive:false });
-
-    btn.addEventListener("keydown", (e)=>{
-      if(e.key === "Enter" || e.key === " "){
-        handleGo(e);
-      }
-    });
-  })();
-</script>
-
-  <!-- ==============================
-       END BUTTON SFX + DELAYED NAV
-       ============================== -->
+      // safety: if page hidden, don't get stuck in "locked" forever
+      document.addEventListener("visibilitychange", ()=>{
+        if(document.hidden && openTimer){
+          clearTimeout(openTimer);
+          openTimer = null;
+          locked = false;
+          btn.classList.remove("pulse");
+        }
+      });
+    })();
+  </script>
 
 </body>
 </html>
