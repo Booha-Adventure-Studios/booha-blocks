@@ -359,47 +359,70 @@
        - Opens data-href AFTER 5s
        ============================== -->
   <script>
-    (function(){
-      const btn = document.getElementById("one5zeroBtn");
-      if(!btn) return;
+  (function(){
+    const btn = document.getElementById("one5zeroBtn");
+    if(!btn) return;
 
-      const HOLD_MS = 5000; // ✅ 5 sec
-      let locked = false;
+    const MIN_DELAY_MS = 4000; // ✅ wait at least 4 seconds
+    let locked = false;
 
-      function playSfx(){
-        try{
-          // fresh Audio prevents Safari “stuck” behavior
-          const a = new Audio("index.mp3");
-          a.currentTime = 0;
-          a.play().catch(()=>{});
-        }catch(e){}
-      }
+    function handleGo(e){
+      e.preventDefault();
+      e.stopPropagation();
+      if(locked) return;
+      locked = true;
 
-      function handleGo(e){
-        e.preventDefault();
-        e.stopPropagation();
-        if(locked) return;
-        locked = true;
+      const href = btn.dataset.href || "./booha-blocks/";
 
-        const href = btn.dataset.href || "./booha-blocks/";
+      btn.classList.add("pulse");
 
-        btn.classList.add("pulse");
-        playSfx();
+      let minDone = false;
+      let audioDone = false;
+      let navigated = false;
 
-        setTimeout(()=>{
+      const goIfReady = ()=>{
+        if(navigated) return;
+        if(minDone && audioDone){
+          navigated = true;
           window.location.href = href;
-        }, HOLD_MS);
-      }
-
-      btn.addEventListener("pointerdown", handleGo, { passive:false });
-
-      btn.addEventListener("keydown", (e)=>{
-        if(e.key === "Enter" || e.key === " "){
-          handleGo(e);
         }
-      });
-    })();
-  </script>
+      };
+
+      // ✅ start minimum delay timer
+      setTimeout(()=>{
+        minDone = true;
+        goIfReady();
+      }, MIN_DELAY_MS);
+
+      // ✅ play SFX (fresh instance = Safari-safe)
+      try{
+        const a = new Audio("index.mp3");
+        a.addEventListener("ended", ()=>{
+          audioDone = true;
+          goIfReady();
+        }, { once:true });
+
+        a.play().catch(()=>{
+          // if autoplay blocks, don't hang forever
+          audioDone = true;
+          goIfReady();
+        });
+      }catch(err){
+        audioDone = true;
+        goIfReady();
+      }
+    }
+
+    btn.addEventListener("pointerdown", handleGo, { passive:false });
+
+    btn.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter" || e.key === " "){
+        handleGo(e);
+      }
+    });
+  })();
+</script>
+
   <!-- ==============================
        END BUTTON SFX + DELAYED NAV
        ============================== -->
