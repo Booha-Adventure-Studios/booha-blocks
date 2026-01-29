@@ -1958,16 +1958,22 @@ function startDangerMusic(){
 function stopDangerMusic(){
   if(!dangerMusicOn) return;
   dangerMusicOn = false;
+
+  // stop danger loop
   try{ SFX.tooHigh.pause(); }catch(_){}
   try{ SFX.tooHigh.currentTime = 0; }catch(_){}
+
+  // ✅ bring normal BGM back (if game is actually running)
+  resumeBGM?.();
 }
+
 
 function checkDangerMusic(){
   if(!gameStarted || isGameOver) { stopDangerMusic(); return; }
   if(isPaused || isPausedForQuestion) return; // don't change while paused/quiz
 
   const h = getStackHeightRows();
-  const danger = (h >= 15); // ✅ 75% of 20 rows = 15 rows high
+  const danger = (h >= 13); // ✅ 75% of 20 rows = 15 rows high
 
   if(danger) startDangerMusic();
   else stopDangerMusic();
