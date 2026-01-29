@@ -3101,6 +3101,18 @@ function closeLeaderboard(){
   if(!leaderboardOverlay) return;
   leaderboardOverlay.style.display = "none";
 
+  // ✅ GAME OVER FLOW: always go back to start overlay
+  if(isGameOver){
+    isPaused = false;
+    lbOpenedFromGame = false;
+
+    if(startOverlay){
+      startOverlay.style.display = "flex";
+      startOverlay.style.pointerEvents = "auto";
+    }
+    return;
+  }
+
   // ✅ if opened mid-game: resume the game (NO start overlay)
   if(lbOpenedFromGame){
     isPaused = false;
@@ -3115,14 +3127,13 @@ function closeLeaderboard(){
     return;
   }
 
-  // ✅ otherwise: behave like your original (go back to start overlay)
+  // ✅ otherwise: go back to start overlay
   isPaused = false;
   if(startOverlay){
     startOverlay.style.display = "flex";
     startOverlay.style.pointerEvents = "auto";
   }
 }
-
 
    
 
