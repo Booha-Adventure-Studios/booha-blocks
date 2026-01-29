@@ -106,32 +106,130 @@
       text-shadow:0 0 12px rgba(59,130,246,0.18);
     }
 
-    .card{
-      width:100%;
-      padding:26px 22px 28px;
-      border-radius:24px;
-      background:radial-gradient(circle at top,rgba(148,163,255,0.25),rgba(15,23,42,0.98));
-      border:1px solid rgba(148,163,255,0.45);
-      text-align:center;
-      box-shadow:
-        0 0 24px rgba(59,130,246,0.55),
-        0 0 60px rgba(15,23,42,0.9);
-      position:relative;
-      overflow:hidden;
-    }
+    /* ✅ remove the old container spacing so the button can float */
+.shell{
+  width:min(92vw, 900px);
+  min-height:calc(100vh - 48px);
+}
 
-    .card::before{
-      content:"";
-      position:absolute;
-      inset:-2px;
-      border-radius:26px;
-      background:
-        radial-gradient(circle at 0% 0%,rgba(236,72,153,0.27),transparent 60%),
-        radial-gradient(circle at 100% 100%,rgba(56,189,248,0.24),transparent 60%);
-      filter:blur(10px);
-      opacity:0.9;
-      z-index:-1;
-    }
+/* ✅ floating logo button */
+.logoBtn{
+  position: relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  width: min(560px, 86vw);
+  aspect-ratio: 16 / 7;              /* wide floating “plaque” */
+  border-radius: 26px;
+
+  background: rgba(8, 14, 30, 0.25); /* barely-there surface */
+  border: 1px solid rgba(190, 230, 255, 0.28);
+
+  cursor: pointer;
+  appearance:none;
+  -webkit-appearance:none;
+  outline:none;
+
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+
+  /* FLOATING + ICE GLOW */
+  box-shadow:
+    0 14px 40px rgba(0,0,0,0.55),
+    0 0 22px rgba(255,255,255,0.20),
+    0 0 44px rgba(160, 210, 255, 0.45),
+    0 0 88px rgba(90, 170, 255, 0.35);
+
+  animation: icePulse 2.6s ease-in-out infinite;
+  transform: translateZ(0);
+}
+
+/* glossy sweep + inner frost */
+.logoBtn::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,255,255,0.22), transparent 55%),
+    radial-gradient(circle at 20% 70%, rgba(120,190,255,0.20), transparent 55%),
+    radial-gradient(circle at 80% 65%, rgba(170,235,255,0.16), transparent 60%);
+  mix-blend-mode: screen;
+  opacity: .75;
+}
+
+/* thin icy rim that “breathes” */
+.logoBtn::after{
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border-radius: calc(26px + 6px);
+  pointer-events:none;
+
+  background:
+    radial-gradient(circle at 50% 50%,
+      rgba(210,240,255,0.35),
+      rgba(120,190,255,0.18) 45%,
+      transparent 70%);
+  filter: blur(10px);
+  opacity: .75;
+}
+
+/* make the logo BIG */
+.logoImg{
+  width: min(360px, 70vw);
+  height: auto;
+  display:block;
+
+  filter:
+    drop-shadow(0 0 10px rgba(255,255,255,0.35))
+    drop-shadow(0 0 24px rgba(120,190,255,0.55))
+    drop-shadow(0 0 52px rgba(90,170,255,0.35));
+}
+
+/* pressed state for responsiveness */
+.logoBtn:active{
+  transform: scale(0.985);
+}
+
+/* when your JS adds .pulse (keep same class name behavior) */
+.logoBtn.pulse{
+  animation: none;
+  transform: scale(0.99);
+
+  box-shadow:
+    0 18px 48px rgba(0,0,0,0.60),
+    0 0 26px rgba(255,255,255,0.30),
+    0 0 60px rgba(180, 230, 255, 0.85),
+    0 0 120px rgba(90, 170, 255, 0.65);
+}
+.logoBtn.pulse::after{
+  opacity: 1;
+}
+
+/* icy blue breathing */
+@keyframes icePulse{
+  0%,100%{
+    filter: saturate(1.08) brightness(1.02);
+    box-shadow:
+      0 14px 40px rgba(0,0,0,0.55),
+      0 0 18px rgba(255,255,255,0.18),
+      0 0 40px rgba(160, 210, 255, 0.42),
+      0 0 80px rgba(90, 170, 255, 0.32);
+  }
+  50%{
+    filter: saturate(1.25) brightness(1.10);
+    box-shadow:
+      0 18px 48px rgba(0,0,0,0.58),
+      0 0 24px rgba(255,255,255,0.26),
+      0 0 62px rgba(180, 230, 255, 0.75),
+      0 0 120px rgba(90, 170, 255, 0.55);
+  }
+}
 
     /* ✅ Logo Button — ICE BLUE CORE */
 .game-link.one5zero{
@@ -274,13 +372,11 @@
       <div class="subtitle">ブーハー・ブロックス</div>
     </div>
 
-    <div class="card">
-      <!-- ✅ button cannot auto-navigate -->
-     <button class="game-link one5zero" id="one5zeroBtn" type="button" data-href="./booha-blocks/">
-  <img src="150.png" alt="One 5 Zero" class="logo150" />
+   <!-- ✅ FLOATING LOGO BUTTON (no container card) -->
+<button class="logoBtn" id="one5zeroBtn" type="button" data-href="./booha-blocks/" aria-label="ONE 5 ZERO">
+  <img src="150.png" alt="ONE 5 ZERO" class="logoImg">
 </button>
 
-    </div>
 
     <div class="bottom">Bryan's English School</div>
   </div>
