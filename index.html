@@ -231,31 +231,19 @@
   }
 }
 
-    /* ✅ Logo Button — ICE BLUE CORE */
+/* ✅ FLOATING LOGO BUTTON — NO SHAPE / NO CARD */
 .game-link.one5zero{
-  display:block;
-  width:100%;
+  display:inline-block;
+  width:auto;
   text-align:center;
 
-  padding:26px 18px;
-  border-radius:18px;
+  padding:0;
+  border:0;
+  border-radius:0;
 
-  background:
-    radial-gradient(circle at top,
-      rgba(180,220,255,0.35),
-      rgba(20,30,60,0.95)
-    );
-
-  border:2px solid rgba(180,220,255,0.75);
-
-  box-shadow:
-    0 0 18px rgba(255,255,255,0.95),
-    0 0 36px rgba(180,220,255,0.85),
-    0 0 60px rgba(120,190,255,0.75),
-    0 12px 28px rgba(0,0,0,0.55);
-
-  position:relative;
-  overflow:hidden;
+  background:none;
+  box-shadow:none;
+  overflow:visible;
 
   user-select:none;
   -webkit-tap-highlight-color:transparent;
@@ -264,99 +252,72 @@
   cursor:pointer;
   appearance:none;
   -webkit-appearance:none;
-  background-clip:padding-box;
 }
 
+.game-link.one5zero:focus{ outline:none; }
 
-    .game-link.one5zero:focus{ outline:none; }
+/* kill the old glow overlay that looked like a container */
+.game-link.one5zero::after{ content:none; }
 
-    .game-link.one5zero .en{
-      display:block;
-      font-family:'Orbitron', system-ui, sans-serif;
-      font-weight:900;
-      letter-spacing:.22em;
-      font-size:1.45rem;
-      color:#0b1220;
-    }
-
-    .game-link.one5zero .jp{
-      display:block;
-      margin-top:8px;
-      font-family:'Noto Sans JP', system-ui, sans-serif;
-      font-weight:700;
-      font-size:.78rem;
-      letter-spacing:.18em;
-      color:#0b1220;
-      opacity:.9;
-      text-shadow:0 0 10px rgba(255,255,255,0.55);
-    }
-
-    @keyframes floatGlow{
-      0%   { transform:translate3d(-34%,-8%,0) scale(1); opacity:.45; }
-      50%  { transform:translate3d(14%,6%,0)  scale(1.12); opacity:.75; }
-      100% { transform:translate3d(-34%,-8%,0) scale(1); opacity:.45; }
-    }
-
-    .game-link.one5zero::after{
-      content:"";
-      position:absolute;
-      inset:-45%;
-      background:radial-gradient(circle,
-      rgba(200,230,255,0.55),
-      rgba(120,180,255,0.25) 40%,
-      transparent 65%
-    );
-
-      filter:blur(12px);
-      opacity:.55;
-      transform:translate3d(-30%, -10%, 0);
-      animation:floatGlow 3.2s ease-in-out infinite;
-      pointer-events:none;
-    }
-
-    .game-link.one5zero.pulse{
-  transform:scale(.985);
-  filter:brightness(1.12) saturate(1.35);
-  box-shadow:
-    0 0 18px rgba(255,255,255,0.95),
-    0 0 36px rgba(180,220,255,0.85),
-    0 0 60px rgba(120,190,255,0.75),
-    0 0 96px rgba(80,160,255,0.65),
-    0 14px 34px rgba(0,0,0,0.55);
+/* click pulse now affects the LOGO (not a box) */
+.game-link.one5zero.pulse{
+  transform:none;
+  filter:none;
+  box-shadow:none;
 }
 
+/* hide old text styles (you’re not using them now) */
+.game-link.one5zero .en,
+.game-link.one5zero .jp{ display:none; }
 
-    .game-link.one5zero.pulse::after{
-      animation:none;
-      opacity:.95;
-      transform:translate3d(10%,6%,0) scale(1.35);
-    }
+/* ✅ THE LOGO ITSELF: bigger + icy pulsing glow */
+.logo150{
+  width:min(360px, 86vw);
+  height:auto;
+  display:block;
+  margin:0 auto;
 
-    .bottom{
-      width:100%;
-      text-align:center;
-      font-family:'Orbitron', system-ui, sans-serif;
-      font-weight:900;
-      font-size:.88rem;
-      opacity:.86;
-      padding-bottom:4px;
-      letter-spacing:.14em;
-      text-shadow:0 0 10px rgba(248,250,252,0.25);
-    }
-
-    @media (max-width:380px){
-      .title{ font-size:2.45rem; }
-    }
-    
-    .logo150{
-  width: min(260px, 72vw);
-  height: auto;
-  display: block;
-  margin: 0 auto;
   filter:
-    drop-shadow(0 0 10px rgba(180,220,255,.65))
-    drop-shadow(0 0 22px rgba(120,190,255,.45));
+    drop-shadow(0 0 14px rgba(210,245,255,.95))
+    drop-shadow(0 0 36px rgba(120,190,255,.85))
+    drop-shadow(0 0 80px rgba(60,150,255,.55));
+
+  animation: icePulse 3.2s ease-in-out infinite;
+  will-change: transform, filter;
 }
+
+/* stronger glow while launching (your JS adds .pulse) */
+.game-link.one5zero.pulse .logo150{
+  animation:none;
+  transform:scale(1.06);
+  filter:
+    drop-shadow(0 0 22px rgba(230,255,255,1))
+    drop-shadow(0 0 70px rgba(120,190,255,1))
+    drop-shadow(0 0 140px rgba(60,150,255,.85));
+}
+
+@keyframes icePulse{
+  0%{
+    transform:translateY(0) scale(1);
+    filter:
+      drop-shadow(0 0 12px rgba(210,245,255,.85))
+      drop-shadow(0 0 30px rgba(120,190,255,.65))
+      drop-shadow(0 0 70px rgba(60,150,255,.45));
+  }
+  50%{
+    transform:translateY(-4px) scale(1.03);
+    filter:
+      drop-shadow(0 0 18px rgba(230,255,255,1))
+      drop-shadow(0 0 50px rgba(120,190,255,.90))
+      drop-shadow(0 0 110px rgba(60,150,255,.70));
+  }
+  100%{
+    transform:translateY(0) scale(1);
+  }
+}
+    
+    
+
 
     
   </style>
@@ -373,9 +334,10 @@
     </div>
 
    <!-- ✅ FLOATING LOGO BUTTON (no container card) -->
-<button class="logoBtn" id="one5zeroBtn" type="button" data-href="./booha-blocks/" aria-label="ONE 5 ZERO">
-  <img src="150.png" alt="ONE 5 ZERO" class="logoImg">
+<button class="game-link one5zero" id="one5zeroBtn" type="button" data-href="./booha-blocks/">
+  <img src="150.png" alt="ONE 5 ZERO" class="logo150">
 </button>
+
 
 
     <div class="bottom">Bryan's English School</div>
